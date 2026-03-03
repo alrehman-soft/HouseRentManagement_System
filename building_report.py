@@ -7,7 +7,7 @@ from openpyxl import Workbook
 import print_utils
 
 def open_building_report(parent):
-    """Building Report Tab - Building Performance Summary"""
+    # Building Report Tab
     
     # Clear parent frame
     for widget in parent.winfo_children():

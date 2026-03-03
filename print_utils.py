@@ -13,7 +13,7 @@ def send_to_printer(tree, title="Huraira Enterprises \nHouse Rent Report", orien
     try:
         # Create temporary PDF file
         temp_path = tempfile.mktemp(suffix=".pdf")
-        # Set page size based on orientation
+        # Set page size
         if orientation == "landscape":
             page_size = landscape(letter)
         else:
@@ -28,7 +28,7 @@ def send_to_printer(tree, title="Huraira Enterprises \nHouse Rent Report", orien
             'CustomTitle',
             parent=styles['Title'],
             fontSize=16,
-            alignment=1,  # Center
+            alignment=1,
             spaceAfter=10,
             textColor=colors.HexColor('#1e3a8a')
         )

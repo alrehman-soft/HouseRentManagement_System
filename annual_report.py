@@ -117,7 +117,7 @@ def generate_annual_report(tree, year, building):
     all_months = ["January", "February", "March", "April", "May", "June",
                   "July", "August", "September", "October", "November", "December"]
     
-    # ===== STEP 2: Sabse pehli payment ka month dhoondo =====
+    # ===== STEP 2: Find 1st payment Month =====
     c.execute("""
         SELECT MIN(month_year) FROM payments 
         WHERE month_year LIKE ?
@@ -126,15 +126,15 @@ def generate_annual_report(tree, year, building):
     first_payment = c.fetchone()[0]
     
     if first_payment:
-        # Pehli payment ka month (e.g., "February-2026")
+        # 1st payment month
         first_month = first_payment.split('-')[0]
         start_index = all_months.index(first_month)
         print(f"✅ First payment was in: {first_month} (index {start_index})")
     else:
-        # Agar koi payment nahi to current month se start karo
+        # If payment not exists
         current_month_num = datetime.now().month
-        start_index = current_month_num - 1  # 0-based index
-        print(f"⚠️ No payments found, starting from current month: {all_months[start_index]}")
+        start_index = current_month_num - 1
+        print(f"No payments found, starting from current month: {all_months[start_index]}")
     
     # ===== STEP 3: Current date =====
     current_date = datetime.now()
@@ -145,11 +145,11 @@ def generate_annual_report(tree, year, building):
     months_to_show = []
     
     if int(year) < current_year:
-        # Past year - start se lekar December tak
+        # Past year
         months_to_show = all_months[start_index:]
         
     elif int(year) == current_year:
-        # Current year - start se lekar current month tak
+        # Current year
         months_to_show = all_months[start_index:current_month_num]
         
     else:
@@ -158,9 +158,8 @@ def generate_annual_report(tree, year, building):
         conn.close()
         return
     
-    print(f"📅 Showing months: {months_to_show}")
+    print(f" Showing months: {months_to_show}")
     
-    # Agar koi month nahi show hona to return
     if not months_to_show:
         messagebox.showinfo("Info", "No months to display based on payment history.")
         conn.close()
@@ -212,7 +211,7 @@ def generate_annual_report(tree, year, building):
                     monthly_data[month]['collected'] += paid
                     monthly_data[month]['pending'] += balance
                 else:
-                    # Sirf current ya past months ke liye pending show karo
+                    # show pending for current or past month
                     monthly_data[month]['pending'] += rent
         
         # Insert rows

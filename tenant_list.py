@@ -222,7 +222,7 @@ def open_tenant_list():
     def open_edit_window(tenant):
         edit_win = tk.Toplevel()
         edit_win.title("Edit Tenant")
-        edit_win.geometry("750x680")
+        edit_win.geometry("750x700")
         edit_win.resizable(False, False)
 
         edit_win.configure(bg="#f0f2f5")
@@ -350,7 +350,7 @@ def open_tenant_list():
             load_tenants()
 
         tk.Button(scroll_frame, text="Update",
-                bg="#1e3a8a", fg="white", width=20,height=2,font=("Arial, 12"),
+                bg="#397112", fg="white", width=18,height=2,font=("Arial, 12"),
                 command=update_tenant).grid(row=len(labels)+1,
                                             columnspan=2, pady=20)
 
@@ -426,7 +426,7 @@ def open_tenant_list():
         values = tree.item(selected[0])['values']
         tenant_id = values[1]
         tenant_name = values[2]
-        flat_no = values[8]  # sirf display ke liye
+        flat_no = values[8]
         
         if messagebox.askyesno("Confirm Delete", 
                             f"Are you sure you want to PERMANENTLY delete {tenant_name}?\n\nThis action cannot be undone!"):
@@ -680,7 +680,7 @@ def open_tenant_list():
             return
         
         # Check photo path
-        photo_path = tenant_data[18]  # photo_path column
+        photo_path = tenant_data[18]
         
         # Create details window
         details_win = tk.Toplevel(window)
@@ -713,7 +713,7 @@ def open_tenant_list():
             try:
                 image = Image.open(photo_path)
                 display_width = 280
-                display_height = 320
+                display_height = 340
                 
                 # Resize image
                 image = image.resize((display_width, display_height), Image.Resampling.LANCZOS)

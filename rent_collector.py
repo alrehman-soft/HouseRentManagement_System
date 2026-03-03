@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from create_database import get_connection
 from datetime import datetime
-from footer import create_footer
+
+
 def open_rent_collector():
     window = tk.Toplevel()
     window.title("Abu Huraira Enterprises - Created by .ARS")
@@ -11,7 +12,7 @@ def open_rent_collector():
     window.resizable(True, True)
 
     # ========== SCROLLBAR FOR WHOLE PAGE ==========
-    # Create main container with scrollbar
+    # Create main container
     main_container = tk.Frame(window, bg="#f8fafc")
     main_container.pack(fill="both", expand=True)
 
@@ -125,14 +126,6 @@ def open_rent_collector():
     entries['phone'] = phone_entry
     row += 1
 
-    # Total Payment Amount
-    # tk.Label(form_frame, text="Total Payment Amount *", bg="#f8fafc", 
-    #          font=("Segoe UI", 11)).grid(row=row, column=0, sticky="w", pady=8, padx=5)
-    # payment_entry = tk.Entry(form_frame, width=30, font=("Segoe UI", 11), relief="solid", bd=1)
-    # payment_entry.grid(row=row, column=1, pady=8, padx=5)
-    # entries['total_payment'] = payment_entry
-    # row += 1
-
     # Reporting To
     tk.Label(form_frame, text="Reporting To *", bg="#f8fafc", 
              font=("Segoe UI", 11)).grid(row=row, column=0, sticky="w", pady=8, padx=5)
@@ -140,29 +133,6 @@ def open_rent_collector():
     reporting_entry.grid(row=row, column=1, pady=8, padx=5)
     entries['reporting_to'] = reporting_entry
     row += 1
-
-    # Payment Invest To
-    # tk.Label(form_frame, text="Payment Invest To *", bg="#f8fafc", 
-    #          font=("Segoe UI", 11)).grid(row=row, column=0, sticky="w", pady=8, padx=5)
-    
-    # invest_options = ["Select Investment Type", "Bank Deposit", "Cash in Hand", "Other Investment"]
-    # invest_var = tk.StringVar()
-    # invest_combo = ttk.Combobox(form_frame, textvariable=invest_var, values=invest_options, 
-    #                            state="readonly", width=28, font=("Segoe UI", 11))
-    # invest_combo.grid(row=row, column=1, pady=8, padx=5)
-    # invest_combo.current(0)
-    # entries['invest_to'] = invest_var
-    # row += 1
-
-    # Other Investment Details
-    # other_invest_frame = tk.Frame(form_frame, bg="#f8fafc")
-    # other_invest_frame.grid(row=row, column=0, columnspan=2, pady=5, sticky="w")
-    
-    # tk.Label(other_invest_frame, text="Other Details:", bg="#f8fafc", font=("Segoe UI", 11)).pack(side="left", padx=5)
-    # other_invest_entry = tk.Entry(other_invest_frame, width=40, font=("Segoe UI", 11), relief="solid", bd=1, state="disabled")
-    # other_invest_entry.pack(side="left", padx=5)
-    # entries['other_invest_details'] = other_invest_entry
-    # row += 1
 
     # Button Frame
     button_frame = tk.Frame(form_frame, bg="#f8fafc")
@@ -180,7 +150,7 @@ def open_rent_collector():
     search_entry = tk.Entry(search_frame, textvariable=search_var, width=30, 
                            font=("Segoe UI", 10), relief="solid", bd=1)
     search_entry.pack(side="left", padx=5, pady=5)
-    search_entry.focus_set()  # Auto focus on search box
+    search_entry.focus_set()
     
     # Clear button for search
     clear_search_btn = tk.Button(search_frame, text="✖", 
@@ -241,16 +211,6 @@ def open_rent_collector():
     tree_frame.grid_columnconfigure(0, weight=1)
 
     # ========== FUNCTIONS DEFINITION ==========
-
-    # def on_invest_change(*args):
-    #     """Show/hide other investment details"""
-    #     if invest_var.get() == "Other Investment":
-    #         other_invest_entry.config(state="normal")
-    #     else:
-    #         other_invest_entry.config(state="disabled")
-    #         other_invest_entry.delete(0, tk.END)
-
-    # invest_var.trace('w', on_invest_change)
 
     def validate_cnic(cnic):
         """Validate CNIC - must be 13 digits"""
@@ -342,7 +302,7 @@ def open_rent_collector():
             conn.close()
 
     def on_collector_select(event):
-        """Fill form fields when a row is selected in treeview"""
+        # Fill form fields
         nonlocal selected_collector_id
         selected = tree.selection()
         if not selected:
@@ -372,25 +332,8 @@ def open_rent_collector():
             entries['phone'].delete(0, tk.END)
             entries['phone'].insert(0, values[5])
             
-            # payment_str = str(values[6]).replace(',', '')
-            # entries['total_payment'].delete(0, tk.END)
-            # entries['total_payment'].insert(0, payment_str)
-            
             entries['reporting_to'].delete(0, tk.END)
             entries['reporting_to'].insert(0, values[6])
-            
-            # Handle Invest To field
-            # invest_value = values[8]
-            # if invest_value and "Other Investment:" in invest_value:
-            #     invest_combo.set("Other Investment")
-            #     other_part = invest_value.replace("Other Investment:", "").strip()
-            #     other_invest_entry.config(state="normal")
-            #     other_invest_entry.delete(0, tk.END)
-            #     other_invest_entry.insert(0, other_part)
-            # else:
-            #     invest_combo.set(invest_value if invest_value else "Select Investment Type")
-            #     other_invest_entry.config(state="disabled")
-            #     other_invest_entry.delete(0, tk.END)
 
     def edit_collector():
         """Edit selected collector information"""
@@ -415,7 +358,7 @@ def open_rent_collector():
                 messagebox.showerror("Error", "Please fill all required fields (*)")
                 return
 
-            # Clean phone number - extract only digits
+            # Clean phone number
             import re
             clean_phone = re.sub(r'\D', '', phone)
             
@@ -424,20 +367,10 @@ def open_rent_collector():
                 messagebox.showerror("Error", "Invalid CNIC! Please enter 13 digits without dashes")
                 return
 
-            # Validate Phone - allow 10-13 digits
+            # Validate Phone
             if not (clean_phone.isdigit() and 10 <= len(clean_phone) <= 13):
                 messagebox.showerror("Error", "Invalid Phone Number! Please enter 10-13 digits")
                 return
-
-            # Validate Payment Amount
-            # try:
-            #     payment_amount = float(payment_amount)
-            #     if payment_amount <= 0:
-            #         messagebox.showerror("Error", "Payment amount must be greater than 0")
-            #         return
-            # except ValueError:
-            #     messagebox.showerror("Error", "Invalid payment amount! Please enter a valid number")
-            #     return
 
             # Database update
             conn = get_connection()
@@ -499,20 +432,7 @@ def open_rent_collector():
             father_name = father_entry.get().strip()
             cnic = cnic_entry.get().strip()
             phone = phone_entry.get().strip()
-            # payment_amount = payment_entry.get().strip()
             reporting_to = reporting_entry.get().strip()
-            # invest_to = invest_var.get()
-            
-            # Handle Other Investment
-            # if invest_to == "Other Investment":
-            #     other_details = other_invest_entry.get().strip()
-            #     if not other_details:
-            #         messagebox.showerror("Error", "Please enter Other Investment Details")
-            #         return
-            #     invest_to = f"Other Investment: {other_details}"
-            # elif invest_to == "Select Investment Type":
-            #     messagebox.showerror("Error", "Please select Investment Type")
-            #     return
 
             # Validate required fields
             if not all([building_name, collector_name, father_name, cnic, phone, 
@@ -533,16 +453,6 @@ def open_rent_collector():
             if not (clean_phone.isdigit() and 10 <= len(clean_phone) <= 13):
                 messagebox.showerror("Error", "Invalid Phone Number! Please enter 10-13 digits")
                 return
-
-            # Validate Payment Amount
-            # try:
-            #     payment_amount = float(payment_amount)
-            #     if payment_amount <= 0:
-            #         messagebox.showerror("Error", "Payment amount must be greater than 0")
-            #         return
-            # except ValueError:
-            #     messagebox.showerror("Error", "Invalid payment amount!")
-            #     return
 
             # Database operations
             conn = get_connection()

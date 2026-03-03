@@ -97,19 +97,11 @@ class LoginSystem:
                             cursor="hand2", bd=0, command=self.login)
         login_btn.pack(side="left", padx=5, ipady=5)
         
-        # Login button hover effects
-        # login_btn.bind("<Enter>", lambda e: login_btn.config(bg="#29BFB0"))
-        # login_btn.bind("<Leave>", lambda e: login_btn.config(bg="#29BFB0"))
-        
         # Clear button
         clear_btn = tk.Button(btn_frame, text="CLEAR", font=("Segoe UI", 11, "bold"),
                             bg="#1A1919", fg="white", width=15, height=1,
                             cursor="hand2", bd=0, command=self.clear_login)
         clear_btn.pack(side="left", padx=5, ipady=5)
-        
-        # Clear button hover effects
-        # clear_btn.bind("<Enter>", lambda e: clear_btn.config(bg="#271E1E"))
-        # clear_btn.bind("<Leave>", lambda e: clear_btn.config(bg="#271E1E"))
         
         # Links frame
         links_frame = tk.Frame(self.current_frame, bg="#ffffff")

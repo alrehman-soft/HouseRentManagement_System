@@ -118,8 +118,8 @@ def open_monthly_report(parent):
     style.configure("Treeview", font=("Segoe UI",10), rowheight=25)
 
     # Status color tags
-    tree.tag_configure("paid", foreground="green")
-    tree.tag_configure("pending", foreground="red")
+    tree.tag_configure("paid", foreground="black")
+    tree.tag_configure("pending", foreground="black")
 
     # alternating row colors
     tree.tag_configure("even", background="#f1f5f9")

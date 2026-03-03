@@ -32,7 +32,7 @@ def export_to_excel(tree, filename):
         for col_num, value in enumerate(values, start=1):
             cell = ws.cell(row=row_num, column=col_num, value=value)
 
-            if col_num != 2:  # Assuming column 2 is Tenant
+            if col_num != 2:
                 cell.alignment = Alignment(horizontal="center")
 
     # Auto-adjust column widths

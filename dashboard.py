@@ -128,7 +128,7 @@ def open_dashboard():
     main_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
     main_frame.grid_columnconfigure(0, weight=1)
-    main_frame.grid_rowconfigure(3, weight=1)  # Changed to 3 for footer
+    main_frame.grid_rowconfigure(3, weight=1)
 
     # Header
     header_frame = tk.Frame(main_frame, bg="#f0f2f5")
@@ -242,7 +242,7 @@ def open_dashboard():
 
     # Database Location with Icon
     db_location = DATABASE_NAME
-    drive_letter = os.path.splitdrive(db_location)[0]  # C:, D:, etc.
+    drive_letter = os.path.splitdrive(db_location)[0]
 
     # Choose icon based on drive
     if drive_letter.upper() == 'C:':
@@ -253,7 +253,7 @@ def open_dashboard():
     tk.Label(footer_content, text=drive_icon, font=("Segoe UI", 10),
              bg="#f0f2f5", fg="#f39c12").pack(side="left", padx=(0, 2))
     
-    # Show only drive and folder name (short version)
+    # Show only drive and folder name
     db_short = os.path.dirname(db_location)
     if len(db_short) > 40:
         db_short = "..." + db_short[-40:]
@@ -449,7 +449,7 @@ def open_dashboard():
         canvas2.draw()
         canvas2.get_tk_widget().pack(fill="both", expand=True, padx=5, pady=5)
         
-        # Chart 3: Monthly Trend (Line Chart - unchanged)
+        # Chart 3: Monthly Trend (Line Chart)
         fig3 = Figure(figsize=(4.5, 3.2), dpi=100, facecolor='white')
         ax3 = fig3.add_subplot(111)
         
@@ -583,7 +583,7 @@ def show_database_info(parent):
     main_frame.pack(fill="both", expand=True, padx=30, pady=10)
     
     # Database path (full)
-    tk.Label(main_frame, text="📍 Full Path:", 
+    tk.Label(main_frame, text="Full Path:", 
              font=("Segoe UI", 11, "bold"), bg="#f8fafc", 
              anchor="w").pack(anchor="w", padx=20, pady=(15,5))
     

@@ -8,7 +8,7 @@ from tkinter import messagebox
 
 def get_available_drives():
     drives = []
-    for letter in string.ascii_uppercase:  # A to Z
+    for letter in string.ascii_uppercase:
         drive = f"{letter}:\\"
         if os.path.exists(drive):
             drives.append(drive)
@@ -17,18 +17,11 @@ def get_available_drives():
 def get_best_drive_for_data():
     available_drives = get_available_drives()
     
-    # First try to find a non-system drive (not C:)
+    # First try to find a non-system drive
     for drive in available_drives:
         if drive.upper() != "C:\\":
             return drive
     return None
-    
-    # # If only C: is available, use it
-    # if available_drives:
-    #     return available_drives[0]
-    
-    # # Fallback to current directory if no drives found (unlikely)
-    # return os.path.abspath(".")
 
 def get_database_path():
     data_folder = os.path.join(os.path.abspath("."), "HouseRentData")
@@ -75,7 +68,7 @@ def initialize_database():
     c = conn.cursor()
 
     try:
-        # Tenants Table - stores all tenant information
+        # Tenants Table
         c.execute('''CREATE TABLE IF NOT EXISTS tenants (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -245,7 +238,7 @@ def get_counts():
     # Occupied units
     occupied = active_tenants
     
-    # Vacant units (never negative)
+    # Vacant units
     vacant = max(0, total_flats - occupied)
     
     conn.close()
@@ -261,10 +254,10 @@ def display_database_info():
     tables = c.fetchall()
     
     print("\n" + "="*60)
-    print("📁 DATABASE INFORMATION")
+    print("DATABASE INFORMATION")
     print("="*60)
-    print(f"📍 Location: {DATABASE_NAME}")
-    print(f"📊 Total Tables: {len(tables)}")
+    print(f"Location: {DATABASE_NAME}")
+    print(f"Total Tables: {len(tables)}")
     print("-"*60)
     
     # Display each table
@@ -272,7 +265,7 @@ def display_database_info():
         table_name = table[0]
         c.execute(f"SELECT COUNT(*) FROM {table_name}")
         count = c.fetchone()[0]
-        print(f"   📌 {table_name}: {count} records")
+        print(f"  {table_name}: {count} records")
     
     # Show drive information
     print("-"*60)
@@ -280,13 +273,13 @@ def display_database_info():
     if db_drive:
         free_space = get_free_space(db_drive)
         if free_space:
-            print(f"💾 Drive: {db_drive} (Free: {free_space:.2f} GB)")
+            print(f"Drive: {db_drive} (Free: {free_space:.2f} GB)")
     
     print("="*60)
     conn.close()
 
 def get_free_space(drive):
-    # Get free space on a drive in GB
+    # Get free space
     try:
         if os.name == 'nt':
             import ctypes
@@ -307,15 +300,14 @@ def backup_database():
 
     if os.path.exists(DATABASE_NAME):
         shutil.copy2(DATABASE_NAME, backup_file)
-        # print(f"Backup created: {backup_file}")
 
 if __name__ == "__main__":
-    # Initialize database safely
+    # Initialize database
     initialize_database()
     add_default_users()
     backup_database()
     
-    # Inform user via popup instead of console
+    # Inform user
     if os.path.exists(DATABASE_NAME):
         messagebox.showinfo(
             "House Rent Management",
