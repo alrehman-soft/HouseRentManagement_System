@@ -506,12 +506,14 @@ def add_tenant_screen():
                 messagebox.showerror("Error", "CNIC already exists in system!")
                 return
 
+            notes = notes_text.get("1.0", tk.END).strip()
+
             # Insert tenant
             c.execute('''INSERT INTO tenants 
                 (name, father_name, cnic, phone, emergency_contact, profession,
                  building_name, floor, flat_no, entry_date, exit_date, owner_name, owner_phone, 
-                 rent_amount, security_deposit, advance_amount, photo_path) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                 rent_amount, security_deposit, advance_amount, photo_path, notes) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 (
                     entries['name'].get().strip(),
                     entries['father_name'].get().strip(),
@@ -529,7 +531,8 @@ def add_tenant_screen():
                     float(entries['rent_amount'].get() or 0),
                     float(entries['security_deposit'].get() or 0),
                     float(entries['advance_payment'].get() or 0), 
-                    photo_path.get()
+                    photo_path.get(),
+                    notes
                 ))
 
             tenant_id = c.lastrowid

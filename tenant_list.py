@@ -679,87 +679,166 @@ def open_tenant_list():
             messagebox.showerror("Error", "Tenant not found!")
             return
         
+        # Debug output - remove after testing
+        print(f"Tenant data length: {len(tenant_data)}")
+        for i, val in enumerate(tenant_data):
+            print(f"Index {i}: {val}")
+
         # Check photo path
         photo_path = tenant_data[18]
         
         # Create details window
         details_win = tk.Toplevel(window)
-        details_win.title("Abu Huraira Enterprises - Created by .ARS \nTenant Details")
-        details_win.geometry("900x700")
+        details_win.title("Abu Huraira Enterprises - Tenant Details")
+        details_win.geometry("1000x750")
         details_win.config(bg="#f8fafc")
         
         # Main frame
         main_frame = tk.Frame(details_win, bg="#f8fafc")
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
-
-        tk.Label(header_frame, text="Abu Huraira Enterprises \nTenant Detail", 
-             font=("Segoe UI", 20, "bold"), bg="#1e3a8a", fg="white").pack(pady=20)
         
-        # Photo and basic info
+        # Title
+        title_label = tk.Label(main_frame, text="Abu Huraira Enterprises\nTenant Details", 
+                            font=("Segoe UI", 18, "bold"), bg="#f8fafc", fg="#1e3a8a")
+        title_label.pack(pady=(0, 20))
+        
+        # Photo and basic info in two columns
         top_frame = tk.Frame(main_frame, bg="#f8fafc")
         top_frame.pack(fill="x", pady=(0, 20))
         
-        # Photo frame - Increase size
-        photo_frame = tk.Frame(top_frame, bg="#f8fafc", width=300)
-        photo_frame.pack(side="left", padx=(0, 20))
+        # Left column - Photo
+        left_col = tk.Frame(top_frame, bg="#f8fafc", width=300)
+        left_col.pack(side="left", padx=(0, 20), fill="y")
+        left_col.pack_propagate(False)
+        
+        # Photo frame
+        photo_frame = tk.LabelFrame(left_col, text="Tenant Photo", 
+                                font=("Segoe UI", 11, "bold"), bg="#f8fafc")
+        photo_frame.pack(fill="both", expand=True)
         
         photo_label = tk.Label(photo_frame, text="No Photo Available", 
                             bg="#e5e7eb", fg="#6b7280", font=("Segoe UI", 10),
-                            width=40, height=20, relief="solid", bd=1)
-        photo_label.pack()
+                            width=35, height=18, relief="solid", bd=1)
+        photo_label.pack(padx=10, pady=10)
         
         # Load and display photo if exists
         if photo_path and os.path.exists(photo_path):
             try:
                 image = Image.open(photo_path)
-                display_width = 280
-                display_height = 340
-                
-                # Resize image
-                image = image.resize((display_width, display_height), Image.Resampling.LANCZOS)
+                # Resize image to fit
+                image.thumbnail((260, 320), Image.Resampling.LANCZOS)
                 photo_img = ImageTk.PhotoImage(image)
                 
-                photo_label.config(image=photo_img, text="", width=display_width, height=display_height)
+                photo_label.config(image=photo_img, text="", width=260, height=320)
                 photo_label.image = photo_img
                 
             except Exception as e:
-                print(f"DEBUG - Error loading photo: {e}")
+                print(f"Error loading photo: {e}")
                 photo_label.config(text="Error Loading Photo", bg="#fecaca")
-        else:
-            photo_label.config(text="No Photo Available", bg="#e5e7eb")
         
-        # Info frame
-        info_frame = tk.Frame(top_frame, bg="#f8fafc")
-        info_frame.pack(side="left", fill="both", expand=True)
+        # Right column - Basic Info
+        right_col = tk.Frame(top_frame, bg="#f8fafc")
+        right_col.pack(side="left", fill="both", expand=True)
+        
+        # Info frame with scrollbar
+        info_canvas = tk.Canvas(right_col, bg="#f8fafc", highlightthickness=0)
+        info_scrollbar = ttk.Scrollbar(right_col, orient="vertical", command=info_canvas.yview)
+        info_inner = tk.Frame(info_canvas, bg="#f8fafc")
+        
+        info_canvas.create_window((0, 0), window=info_inner, anchor="nw")
+        info_canvas.configure(yscrollcommand=info_scrollbar.set)
+        
+        info_inner.bind("<Configure>", lambda e: info_canvas.configure(scrollregion=info_canvas.bbox("all")))
+        
+        info_canvas.pack(side="left", fill="both", expand=True)
+        info_scrollbar.pack(side="right", fill="y")
+        
+        # Basic Information
+        basic_info_frame = tk.LabelFrame(info_inner, text="Basic Information", 
+                                        font=("Segoe UI", 11, "bold"), bg="#f8fafc", pady=10)
+        basic_info_frame.pack(fill="x", pady=(0, 10))
         
         basic_fields = [
-            ("Name:", tenant_data[1] or "N/A"),
-            ("Father Name:", tenant_data[2] or "N/A"),
-            ("CNIC:", tenant_data[3] or "N/A"),
-            ("Phone:", tenant_data[4] or "N/A"),
-            ("Emergency Contact:", tenant_data[5] or "N/A"),
-            ("Profession:", tenant_data[6] or "N/A"),
-            ("Building Name:", tenant_data[7] or "N/A"),
-            ("Floor:", str(tenant_data[8]) if tenant_data[8] else "N/A"),
-            ("Flat No:", tenant_data[9] or "N/A"),
-            ("Entry Date:", tenant_data[10] or "N/A"),
-            ("Exit Date:", tenant_data[11] or "N/A"),
-            ("Status:", tenant_data[12] or "N/A"),
-            ("Owner Name:", tenant_data[13] or "N/A"),
-            ("Owner Phone:", tenant_data[14] or "N/A"),
-            ("Rent Amount:", f"{(tenant_data[15] or 0):,.2f}"),
-            ("Security Deposit:", f"{(tenant_data[16] or 0):,.2f}"),
-            ("Advance Amount:", f"{(tenant_data[17] or 0):,.2f}"),
-            ("Additional Note:", tenant_data[20] or "N/A")
+            ("Name:", tenant_data[1] or "N/A", 0, 0),
+            ("Father Name:", tenant_data[2] or "N/A", 0, 2),
+            ("CNIC:", tenant_data[3] or "N/A", 1, 0),
+            ("Phone:", tenant_data[4] or "N/A", 1, 2),
+            ("Emergency Contact:", tenant_data[5] or "N/A", 2, 0),
+            ("Profession:", tenant_data[6] or "N/A", 2, 2),
         ]
         
-        for i, (label, value) in enumerate(basic_fields):
-            tk.Label(info_frame, text=label, font=("Segoe UI", 10, "bold"), 
-                    bg="#f8fafc").grid(row=i, column=0, sticky="w", padx=5, pady=2)
-            tk.Label(info_frame, text=value, font=("Segoe UI", 10), 
-                    bg="#f8fafc").grid(row=i, column=1, sticky="w", padx=5, pady=2)
+        for label, value, row, col in basic_fields:
+            tk.Label(basic_info_frame, text=label, font=("Segoe UI", 10, "bold"), 
+                    bg="#f8fafc").grid(row=row, column=col, sticky="w", padx=10, pady=5)
+            tk.Label(basic_info_frame, text=value, font=("Segoe UI", 10), 
+                    bg="#f8fafc", wraplength=200).grid(row=row, column=col+1, sticky="w", padx=5, pady=5)
         
-        # Witness Information Section
+        # Property Information
+        property_frame = tk.LabelFrame(info_inner, text="Property Information", 
+                                    font=("Segoe UI", 11, "bold"), bg="#f8fafc", pady=10)
+        property_frame.pack(fill="x", pady=(0, 10))
+        
+        property_fields = [
+            ("Building:", tenant_data[7] or "N/A", 0, 0),
+            ("Floor:", str(tenant_data[8]) if tenant_data[8] else "N/A", 0, 2),
+            ("Flat No:", tenant_data[9] or "N/A", 1, 0),
+            ("Entry Date:", tenant_data[10] or "N/A", 1, 2),
+            ("Exit Date:", tenant_data[11] or "N/A", 2, 0),
+            ("Status:", tenant_data[12] or "N/A", 2, 2),
+        ]
+        
+        for label, value, row, col in property_fields:
+            tk.Label(property_frame, text=label, font=("Segoe UI", 10, "bold"), 
+                    bg="#f8fafc").grid(row=row, column=col, sticky="w", padx=10, pady=5)
+            tk.Label(property_frame, text=value, font=("Segoe UI", 10), 
+                    bg="#f8fafc").grid(row=row, column=col+1, sticky="w", padx=5, pady=5)
+        
+        # Owner Information
+        owner_frame = tk.LabelFrame(info_inner, text="Owner Information", 
+                                font=("Segoe UI", 11, "bold"), bg="#f8fafc", pady=10)
+        owner_frame.pack(fill="x", pady=(0, 10))
+        
+        owner_fields = [
+            ("Owner Name:", tenant_data[13] or "N/A", 0, 0),
+            ("Owner Phone:", tenant_data[14] or "N/A", 0, 2),
+        ]
+        
+        for label, value, row, col in owner_fields:
+            tk.Label(owner_frame, text=label, font=("Segoe UI", 10, "bold"), 
+                    bg="#f8fafc").grid(row=row, column=col, sticky="w", padx=10, pady=5)
+            tk.Label(owner_frame, text=value, font=("Segoe UI", 10), 
+                    bg="#f8fafc").grid(row=row, column=col+1, sticky="w", padx=5, pady=5)
+        
+        # Financial Information
+        financial_frame = tk.LabelFrame(info_inner, text="Financial Information", 
+                                    font=("Segoe UI", 11, "bold"), bg="#f8fafc", pady=10)
+        financial_frame.pack(fill="x", pady=(0, 10))
+        
+        financial_fields = [
+            ("Rent Amount:", f"Rs. {(tenant_data[15] or 0):,.2f}", 0, 0),
+            ("Security Deposit:", f"Rs. {(tenant_data[16] or 0):,.2f}", 0, 2),
+            ("Advance Amount:", f"Rs. {(tenant_data[17] or 0):,.2f}", 1, 0),
+        ]
+        
+        for label, value, row, col in financial_fields:
+            tk.Label(financial_frame, text=label, font=("Segoe UI", 10, "bold"), 
+                    bg="#f8fafc").grid(row=row, column=col, sticky="w", padx=10, pady=5)
+            tk.Label(financial_frame, text=value, font=("Segoe UI", 10), 
+                    bg="#f8fafc").grid(row=row, column=col+1, sticky="w", padx=5, pady=5)
+        
+        # Additional Note
+        if tenant_data[20]:  # If note exists
+            note_frame = tk.LabelFrame(info_inner, text="Additional Note", 
+                                    font=("Segoe UI", 11, "bold"), bg="#f8fafc", pady=10)
+            note_frame.pack(fill="x", pady=(0, 10))
+            
+            note_text = tk.Text(note_frame, height=3, width=50, font=("Segoe UI", 10), 
+                            wrap="word", bg="#f8fafc", relief="solid", bd=1)
+            note_text.pack(padx=10, pady=5)
+            note_text.insert("1.0", tenant_data[20])
+            note_text.config(state="disabled")
+        
+        # Witness Information
         witness_frame = tk.LabelFrame(main_frame, text="Witness Information", 
                                     font=("Segoe UI", 12, "bold"), bg="#f8fafc", pady=10)
         witness_frame.pack(fill="x", pady=10)
@@ -767,22 +846,30 @@ def open_tenant_list():
         # Witness 1
         tk.Label(witness_frame, text="Witness 1:", font=("Segoe UI", 11, "bold"), 
                 bg="#f8fafc").grid(row=0, column=0, sticky="w", padx=10, pady=5)
-        tk.Label(witness_frame, text=f"Name: {tenant_data[20] or 'N/A'}", 
+        tk.Label(witness_frame, text=f"Name: {tenant_data[21] or 'N/A'}", 
                 bg="#f8fafc").grid(row=0, column=1, sticky="w", padx=10, pady=2)
-        tk.Label(witness_frame, text=f"CNIC: {tenant_data[21] or 'N/A'}", 
+        tk.Label(witness_frame, text=f"CNIC: {tenant_data[22] or 'N/A'}", 
                 bg="#f8fafc").grid(row=1, column=1, sticky="w", padx=10, pady=2)
-        tk.Label(witness_frame, text=f"Phone: {tenant_data[22] or 'N/A'}", 
+        tk.Label(witness_frame, text=f"Phone: {tenant_data[23] or 'N/A'}", 
                 bg="#f8fafc").grid(row=2, column=1, sticky="w", padx=10, pady=2)
         
         # Witness 2
         tk.Label(witness_frame, text="Witness 2:", font=("Segoe UI", 11, "bold"), 
                 bg="#f8fafc").grid(row=0, column=2, sticky="w", padx=20, pady=5)
-        tk.Label(witness_frame, text=f"Name: {tenant_data[23] or 'N/A'}", 
+        tk.Label(witness_frame, text=f"Name: {tenant_data[24] or 'N/A'}", 
                 bg="#f8fafc").grid(row=0, column=3, sticky="w", padx=10, pady=2)
-        tk.Label(witness_frame, text=f"CNIC: {tenant_data[24] or 'N/A'}", 
+        tk.Label(witness_frame, text=f"CNIC: {tenant_data[25] or 'N/A'}", 
                 bg="#f8fafc").grid(row=1, column=3, sticky="w", padx=10, pady=2)
-        tk.Label(witness_frame, text=f"Phone: {tenant_data[25] or 'N/A'}", 
-                bg="#f8fafc").grid(row=2, column=3, sticky="w", padx=10, pady=2)    
+        tk.Label(witness_frame, text=f"Phone: {tenant_data[26] or 'N/A'}", 
+                bg="#f8fafc").grid(row=2, column=3, sticky="w", padx=10, pady=2)
+        
+        # Close button
+        button_frame = tk.Frame(main_frame, bg="#f8fafc")
+        button_frame.pack(pady=20)
+        
+        tk.Button(button_frame, text="Close", command=details_win.destroy,
+                bg="#1e3a8a", fg="white", font=("Segoe UI", 12, "bold"),
+                width=15, padx=10, pady=5).pack()  
     
     # ========== BUTTONS CREATION ==========
     ttk.Button(button_frame, text="Refresh", command=load_tenants).pack(side="left", padx=5)

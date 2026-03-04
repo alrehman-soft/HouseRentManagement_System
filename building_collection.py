@@ -135,8 +135,6 @@ def open_building_collection():
         # Clear existing rows in treeview
         for item in collection_tree.get_children():
             collection_tree.delete(item)
-
-        # Load fresh data from database
         load_collections()
 
 
@@ -192,6 +190,19 @@ def open_building_collection():
         date_var.set(datetime.now().strftime("%d-%m-%Y"))
         total_var.set("")
         invest_var.set("Select Invest type")
+
+    def clear_form():
+        # Sirf form clear
+        building_var.set("")
+        collector_var.set("")
+        date_var.set(datetime.now().strftime("%d-%m-%Y"))
+        total_var.set("")
+        invest_var.set("Select Invest type")
+        selected_id.set(0)
+        
+        # Treeview selection clear
+        for item in collection_tree.selection():
+            collection_tree.selection_remove(item)
         
     def delete_collection():
         selected = collection_tree.focus()
@@ -240,8 +251,12 @@ def open_building_collection():
     delete_btn.grid(row=0, column=1, padx=5)
 
     refresh_btn = tk.Button(btn_frame, text="Refresh", command=refresh_collections,
-                            bg="#059669", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+                            bg="#035C40", fg="white", font=("Segoe UI", 11, "bold"), width=15)
     refresh_btn.grid(row=0, column=2, padx=5)
+
+    clear_btn = tk.Button(btn_frame, text="Clear Form", command=clear_form,
+                        bg="#171003", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+    clear_btn.grid(row=0, column=3, padx=5)
 
     # ================= INITIAL LOAD =================
     load_buildings()
