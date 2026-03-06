@@ -86,12 +86,46 @@ def open_rent_collector():
     row = 0
     selected_collector_id = None
 
-    # Building Name
+    # ========== LOAD BUILDINGS ==========
+    def load_buildings_from_tenants():
+        # Load distinct building names
+        conn = get_connection()
+        c = conn.cursor()
+        
+        # Get buildings from tenants table
+        c.execute("""
+            SELECT DISTINCT building_name 
+            FROM tenants 
+            WHERE building_name IS NOT NULL AND building_name != '' 
+            ORDER BY building_name
+        """)
+        
+        buildings = [row[0] for row in c.fetchall()]
+        conn.close()
+        
+        return buildings
+
+    def update_building_dropdown():
+        # Update building
+        buildings = load_buildings_from_tenants()
+        
+        if buildings:
+            # Show buildings in dropdown
+            building_combo['values'] = buildings
+            building_combo.set("")  # Clear selection
+        else:
+            building_combo['values'] = ["No buildings found"]
+            building_combo.set("No buildings found")
+
+    # Building Name - CHANGED TO COMBOBOX
     tk.Label(form_frame, text="Building Name *", bg="#f8fafc", 
              font=("Segoe UI", 11)).grid(row=row, column=0, sticky="w", pady=8, padx=5)
-    building_entry = tk.Entry(form_frame, width=30, font=("Segoe UI", 11), relief="solid", bd=1)
-    building_entry.grid(row=row, column=1, pady=8, padx=5)
-    entries['building_name'] = building_entry
+    
+    building_var = tk.StringVar()
+    building_combo = ttk.Combobox(form_frame, textvariable=building_var, 
+                                  state="readonly", width=28, font=("Segoe UI", 11))
+    building_combo.grid(row=row, column=1, pady=8, padx=5)
+    entries['building_name'] = building_combo
     row += 1
 
     # Rent Collector Name
@@ -143,17 +177,21 @@ def open_rent_collector():
     search_frame = tk.Frame(right_frame, bg="#f8fafc")
     search_frame.pack(fill="x", pady=(0, 10))
 
-    tk.Label(search_frame, text="🔍 Search:", bg="#f8fafc", 
+    # Left side - Search
+    left_search = tk.Frame(search_frame, bg="#f8fafc")
+    left_search.pack(side="left")
+
+    tk.Label(left_search, text="🔍 Search:", bg="#f8fafc", 
              font=("Segoe UI", 10, "bold")).pack(side="left", padx=5)
     
     search_var = tk.StringVar()
-    search_entry = tk.Entry(search_frame, textvariable=search_var, width=30, 
+    search_entry = tk.Entry(left_search, textvariable=search_var, width=30, 
                            font=("Segoe UI", 10), relief="solid", bd=1)
     search_entry.pack(side="left", padx=5, pady=5)
     search_entry.focus_set()
     
     # Clear button for search
-    clear_search_btn = tk.Button(search_frame, text="✖", 
+    clear_search_btn = tk.Button(left_search, text="✖", 
                                 command=lambda: clear_search(),
                                 bg="#dc3545", fg="white", font=("Segoe UI", 8, "bold"),
                                 width=2, height=1, cursor="hand2")
@@ -161,7 +199,7 @@ def open_rent_collector():
     
     # Results count label
     results_var = tk.StringVar(value="")
-    results_label = tk.Label(search_frame, textvariable=results_var, bg="#f8fafc", 
+    results_label = tk.Label(left_search, textvariable=results_var, bg="#f8fafc", 
                             font=("Segoe UI", 9), fg="#1e3a8a")
     results_label.pack(side="left", padx=10)
 
@@ -262,7 +300,7 @@ def open_rent_collector():
                                 f"{search_text}%", f"{search_text}%"))  # For exact starts with priority
             else:
                 query = """SELECT id, building_name, rent_collector_name, father_name, cnic, phone,
-                                reporting_to,strftime('%d-%m-%Y', created_date) as created_date
+                                reporting_to, strftime('%d-%m-%Y', created_date) as created_date
                         FROM rent_collectors ORDER BY created_date DESC"""
                 c.execute(query)
             
@@ -285,8 +323,8 @@ def open_rent_collector():
                     collector[3] or "",  # father_name
                     collector[4] or "",  # cnic
                     phone,                # formatted phone
-                    collector[6] or "",
-                    collector[7] or "",  # reporting_to
+                    collector[6] or "",   # reporting_to
+                    collector[7] or "",   # created_date
                 ]
                 # Store actual ID as iid for easy access
                 tree.insert("", "end", iid=str(collector[0]), values=formatted_values)
@@ -316,9 +354,8 @@ def open_rent_collector():
         if values:
             selected_collector_id = int(collector_id)
             
-            # Form fields
-            entries['building_name'].delete(0, tk.END)
-            entries['building_name'].insert(0, values[1])
+            # Form fields - for Combobox
+            entries['building_name'].set(values[1])
             
             entries['rent_collector_name'].delete(0, tk.END)
             entries['rent_collector_name'].insert(0, values[2])
@@ -345,13 +382,13 @@ def open_rent_collector():
         
         try:
             # Get value from Form
-            building_name = entries['building_name'].get().strip()
+            building_name = building_var.get().strip()
             collector_name = entries['rent_collector_name'].get().strip()
             father_name = entries['father_name'].get().strip()
             cnic = entries['cnic'].get().strip()
             phone = entries['phone'].get().strip()
-            
             reporting_to = entries['reporting_to'].get().strip()
+            
             # Validate required fields
             if not all([building_name, collector_name, father_name, cnic, phone, 
                     reporting_to]):
@@ -426,8 +463,8 @@ def open_rent_collector():
     def save_collector():
         """Save rent collector to database"""
         try:
-            # Get values
-            building_name = building_entry.get().strip()
+            # Get values - from building_var
+            building_name = building_var.get().strip()
             collector_name = collector_name_entry.get().strip()
             father_name = father_entry.get().strip()
             cnic = cnic_entry.get().strip()
@@ -440,9 +477,24 @@ def open_rent_collector():
                 messagebox.showerror("Error", "Please fill all required fields (*)")
                 return
 
+            # Check if building exists in tenants table
+            conn = get_connection()
+            c = conn.cursor()
+            c.execute("SELECT COUNT(*) FROM tenants WHERE building_name=?", (building_name,))
+            tenant_count = c.fetchone()[0]
+            
+            if tenant_count == 0:
+                result = messagebox.askyesno("Warning", 
+                    f"Building '{building_name}' has no tenants in the system.\n"
+                    "Are you sure you want to add this collector?")
+                if not result:
+                    conn.close()
+                    return
+            
             # Validate CNIC
             if not validate_cnic(cnic):
                 messagebox.showerror("Error", "Invalid CNIC! Please enter 13 digits without dashes")
+                conn.close()
                 return
 
             # Clean phone number
@@ -452,12 +504,9 @@ def open_rent_collector():
             # Validate Phone
             if not (clean_phone.isdigit() and 10 <= len(clean_phone) <= 13):
                 messagebox.showerror("Error", "Invalid Phone Number! Please enter 10-13 digits")
+                conn.close()
                 return
 
-            # Database operations
-            conn = get_connection()
-            c = conn.cursor()
-            
             # Check if CNIC already exists
             c.execute("SELECT id FROM rent_collectors WHERE cnic = ?", (cnic,))
             if c.fetchone():
@@ -488,11 +537,19 @@ def open_rent_collector():
         nonlocal selected_collector_id
         selected_collector_id = None
 
-        for key in ['building_name','rent_collector_name',
-                'father_name','cnic','phone','reporting_to']:
-            entries[key].delete(0, tk.END)
-
-        building_entry.focus_set()
+        # Clear all entry fields
+        entries['building_name'].set("")
+        entries['rent_collector_name'].delete(0, tk.END)
+        entries['father_name'].delete(0, tk.END)
+        entries['cnic'].delete(0, tk.END)
+        entries['phone'].delete(0, tk.END)
+        entries['reporting_to'].delete(0, tk.END)
+        
+        # Update dropdown values again
+        update_building_dropdown()
+        
+        # Focus on building dropdown
+        building_combo.focus_set()
         
     # Bind treeview selection
     tree.bind('<<TreeviewSelect>>', on_collector_select)
@@ -541,5 +598,8 @@ def open_rent_collector():
               bg="#1BABE9", fg="white", font=("Segoe UI", 11, "bold"),
               width=14, height=2, relief="raised", bd=2).pack(side="left", padx=5)
 
-    # Load initial data
+    # ========== INITIAL LOAD ==========
+    update_building_dropdown()
     load_collectors()
+    
+    return window

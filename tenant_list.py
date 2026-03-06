@@ -685,11 +685,6 @@ def open_tenant_list():
             messagebox.showerror("Error", "Tenant not found!")
             return
         
-        # Debug output - remove after testing
-        print(f"Tenant data length: {len(tenant_data)}")
-        for i, val in enumerate(tenant_data):
-            print(f"Index {i}: {val}")
-
         # Check photo path
         photo_path = tenant_data[18]
         

@@ -12,7 +12,7 @@ def open_payments():
 
     window = tk.Toplevel()
     window.title("Abu Huraira Enterprises - Created by .ARS")
-    window.geometry("1400x900")
+    window.geometry("1400x930")
     window.config(bg="#f8fafc")
 
     # Header
@@ -93,41 +93,41 @@ def open_payments():
                               bg="#f8fafc", padx=15, pady=15)
     left_frame.pack(fill="both", expand=True)
 
-    # Create canvas and scrollbar for left frame
-    left_canvas = tk.Canvas(left_frame, bg="#f8fafc", highlightthickness=0)
-    left_scrollbar = ttk.Scrollbar(left_frame, orient="vertical", command=left_canvas.yview)
+    # # Create canvas and scrollbar for left frame
+    # left_canvas = tk.Canvas(left_frame, bg="#f8fafc", highlightthickness=0)
+    # left_scrollbar = ttk.Scrollbar(left_frame, orient="vertical", command=left_canvas.yview)
     
-    # Scrollable frame
-    left_scrollable = tk.Frame(left_canvas, bg="#f8fafc")
+    # # Scrollable frame
+    # left_scrollable = tk.Frame(left_canvas, bg="#f8fafc")
     
-    # Configure canvas
-    left_scrollable.bind(
-        "<Configure>",
-        lambda e: left_canvas.configure(scrollregion=left_canvas.bbox("all"))
-    )
+    # # Configure canvas
+    # left_scrollable.bind(
+    #     "<Configure>",
+    #     lambda e: left_canvas.configure(scrollregion=left_canvas.bbox("all"))
+    # )
     
-    # Canvas
-    def configure_left_canvas(event):
-        left_canvas.itemconfig(left_frame_id, width=event.width)
+    # # Canvas
+    # def configure_left_canvas(event):
+    #     left_canvas.itemconfig(left_frame_id, width=event.width)
     
-    left_canvas.bind("<Configure>", configure_left_canvas)
+    # left_canvas.bind("<Configure>", configure_left_canvas)
     
-    # Create window in canvas
-    left_frame_id = left_canvas.create_window((0, 0), window=left_scrollable, anchor="nw")
+    # # Create window in canvas
+    # left_frame_id = left_canvas.create_window((0, 0), window=left_scrollable, anchor="nw")
     
-    # Configure canvas scrolling
-    left_canvas.configure(yscrollcommand=left_scrollbar.set)
+    # # Configure canvas scrolling
+    # left_canvas.configure(yscrollcommand=left_scrollbar.set)
     
-    # Pack canvas and scrollbar
-    left_canvas.pack(side="left", fill="both", expand=True)
-    left_scrollbar.pack(side="right", fill="y")
+    # # Pack canvas and scrollbar
+    # left_canvas.pack(side="left", fill="both", expand=True)
+    # left_scrollbar.pack(side="right", fill="y")
 
-    # Mouse wheel scrolling for left frame
-    def on_left_mousewheel(event):
-        left_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+    # # Mouse wheel scrolling for left frame
+    # def on_left_mousewheel(event):
+    #     left_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
     
-    left_canvas.bind("<Enter>", lambda e: left_canvas.bind_all("<MouseWheel>", on_left_mousewheel))
-    left_canvas.bind("<Leave>", lambda e: left_canvas.unbind_all("<MouseWheel>"))
+    # left_canvas.bind("<Enter>", lambda e: left_canvas.bind_all("<MouseWheel>", on_left_mousewheel))
+    # left_canvas.bind("<Leave>", lambda e: left_canvas.unbind_all("<MouseWheel>"))
 
     # ========== RIGHT FRAME - WITH TWO TABLES ==========
     right_frame = tk.LabelFrame(main_frame, text="Payment History", 
@@ -314,7 +314,7 @@ def open_payments():
     tree_frame_bottom.grid_columnconfigure(0, weight=1)
 
     # ========== PAYMENT ENTRY FORM ==========
-    form_frame = tk.Frame(left_scrollable, bg="#f8fafc")
+    form_frame = tk.Frame(left_frame, bg="#f8fafc")
     form_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
     # Row 0: Select Tenant
@@ -592,7 +592,7 @@ def open_payments():
         global editing_payment_id
         try:
             if not all([tenant_var.get(), month_var.get(), year_var.get(), 
-                       payment_date_var.get(), rent_var.get(), paid_var.get()]):
+                    payment_date_var.get(), rent_var.get(), paid_var.get()]):
                 messagebox.showwarning("Input Error", "Please fill all required fields (*)")
                 return
 
@@ -619,7 +619,7 @@ def open_payments():
 
             if editing_payment_id is None:
                 c.execute("SELECT id FROM payments WHERE tenant_id=? AND month_year=?", 
-                         (tenant_id, month_year))
+                        (tenant_id, month_year))
                 if c.fetchone():
                     messagebox.showwarning("Duplicate", "Payment for this month already exists!")
                     conn.close()
@@ -634,31 +634,32 @@ def open_payments():
             total = rent + gas + water + electricity + other
             balance = total - paid
 
-            # ================= COLLECTION CHECK =================
+            # ================= CHECK ALL OPEN COLLECTIONS =================
             c.execute("""
                 SELECT id, remaining_amount
                 FROM building_collections
                 WHERE building_name=? AND status='Open'
+                ORDER BY id ASC
             """, (building_name,))
 
-            collection = c.fetchone()
+            collections = c.fetchall()
 
-            if not collection:
+            if not collections:
                 messagebox.showerror("Error", "No open building collection found.")
                 conn.close()
                 return
 
-            collection_id = collection[0]
-            remaining_amount = float(collection[1])
-
-            paid = float(paid_var.get() or 0)
-
-            # ===== Check if paid exceeds remaining =====
-            if paid > remaining_amount:
-                messagebox.showerror("Error", "Payment exceeds building's remaining amount.")
+            # Calculate total available amount across ALL collections
+            total_available = sum([col[1] for col in collections])
+            
+            # Check if paid amount exceeds total available
+            if paid > total_available:
+                messagebox.showerror("Error", 
+                    f"Payment of Rs. {paid:,.2f} exceeds total available amount (Rs. {total_available:,.2f}) across all collections.")
                 conn.close()
                 return
 
+            # Determine payment status
             if balance == 0:
                 status = "Paid"
             elif paid == 0:
@@ -666,22 +667,49 @@ def open_payments():
             else:
                 status = "Partial"
 
+            # ===== DISTRIBUTE PAYMENT ACROSS COLLECTIONS =====
+            remaining_to_pay = paid
+            collection_ids_used = []
+            
+            for collection in collections:
+                if remaining_to_pay <= 0:
+                    break
+                    
+                collection_id = collection[0]
+                collection_remaining = collection[1]
+                
+                if collection_remaining >= remaining_to_pay:
+                    new_remaining = collection_remaining - remaining_to_pay
+                    c.execute("""
+                        UPDATE building_collections
+                        SET remaining_amount=?
+                        WHERE id=?
+                    """, (new_remaining, collection_id))
+                    
+                    collection_ids_used.append(collection_id)
+                    remaining_to_pay = 0
+                    
+                else:
+                    # Use all of this collection
+                    c.execute("""
+                        UPDATE building_collections
+                        SET remaining_amount=0
+                        WHERE id=?
+                    """, (collection_id,))
+                    
+                    collection_ids_used.append(collection_id)
+                    remaining_to_pay -= collection_remaining
+
+            # Use first collection ID for reference
+            main_collection_id = collections[0][0] if collections else None
+
             if editing_payment_id is None:
                 c.execute('''INSERT INTO payments 
                     (tenant_id, month_year, rent_amount, gas_bill, water_bill, electricity_bill, 
                     total_amount, paid_amount, balance_amount, payment_date, status, collection_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                     (tenant_id, month_year, rent, gas, water, electricity, 
-                    total, paid, balance, payment_date_var.get(), status, collection_id))
-
-                # Reduce remaining collection amount
-                new_remaining = remaining_amount - paid
-
-                c.execute("""
-                    UPDATE building_collections
-                    SET remaining_amount=?
-                    WHERE id=?
-                """, (new_remaining, collection_id))
+                    total, paid, balance, payment_date_var.get(), status, main_collection_id))
 
             else:
                 c.execute('''UPDATE payments SET
@@ -707,6 +735,127 @@ def open_payments():
             messagebox.showerror("Input Error", "Please enter valid numbers in amount fields")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save payment: {str(e)}")
+
+    # def save_payment():
+    #     """Save payment to database"""
+    #     global editing_payment_id
+    #     try:
+    #         if not all([tenant_var.get(), month_var.get(), year_var.get(), 
+    #                    payment_date_var.get(), rent_var.get(), paid_var.get()]):
+    #             messagebox.showwarning("Input Error", "Please fill all required fields (*)")
+    #             return
+
+    #         if tenant_var.get() not in tenant_combo.tenant_data:
+    #             messagebox.showwarning("Input Error", "Please select a valid tenant")
+    #             return
+
+    #         tenant_id = tenant_combo.tenant_data[tenant_var.get()]
+    #         month_year = f"{month_var.get()}-{year_var.get()}"
+            
+    #         conn = get_connection()
+    #         c = conn.cursor()
+
+    #         # Get building name of tenant
+    #         c.execute("SELECT building_name FROM tenants WHERE id=?", (tenant_id,))
+    #         building_row = c.fetchone()
+
+    #         if not building_row:
+    #             messagebox.showerror("Error", "Building not found for this tenant.")
+    #             conn.close()
+    #             return
+
+    #         building_name = building_row[0]
+
+    #         if editing_payment_id is None:
+    #             c.execute("SELECT id FROM payments WHERE tenant_id=? AND month_year=?", 
+    #                      (tenant_id, month_year))
+    #             if c.fetchone():
+    #                 messagebox.showwarning("Duplicate", "Payment for this month already exists!")
+    #                 conn.close()
+    #                 return
+
+    #         rent = float(rent_var.get() or 0)
+    #         gas = float(gas_var.get() or 0)
+    #         water = float(water_var.get() or 0)
+    #         electricity = float(electricity_var.get() or 0)
+    #         other = float(other_var.get() or 0)
+    #         paid = float(paid_var.get() or 0)
+    #         total = rent + gas + water + electricity + other
+    #         balance = total - paid
+
+    #         # ================= COLLECTION CHECK =================
+    #         c.execute("""
+    #             SELECT id, remaining_amount
+    #             FROM building_collections
+    #             WHERE building_name=? AND status='Open'
+    #         """, (building_name,))
+
+    #         collection = c.fetchone()
+
+    #         if not collection:
+    #             messagebox.showerror("Error", "No open building collection found.")
+    #             conn.close()
+    #             return
+
+    #         collection_id = collection[0]
+    #         remaining_amount = float(collection[1])
+
+    #         paid = float(paid_var.get() or 0)
+
+    #         # ===== Check if paid exceeds remaining =====
+    #         if paid > remaining_amount:
+    #             messagebox.showerror("Error", "Payment exceeds building's remaining amount.")
+    #             conn.close()
+    #             return
+
+    #         if balance == 0:
+    #             status = "Paid"
+    #         elif paid == 0:
+    #             status = "Pending"
+    #         else:
+    #             status = "Partial"
+
+    #         if editing_payment_id is None:
+    #             c.execute('''INSERT INTO payments 
+    #                 (tenant_id, month_year, rent_amount, gas_bill, water_bill, electricity_bill, 
+    #                 total_amount, paid_amount, balance_amount, payment_date, status, collection_id)
+    #                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+    #                 (tenant_id, month_year, rent, gas, water, electricity, 
+    #                 total, paid, balance, payment_date_var.get(), status, collection_id))
+
+    #             # Reduce remaining collection amount
+    #             new_remaining = remaining_amount - paid
+
+    #             c.execute("""
+    #                 UPDATE building_collections
+    #                 SET remaining_amount=?
+    #                 WHERE id=?
+    #             """, (new_remaining, collection_id))
+
+    #         else:
+    #             c.execute('''UPDATE payments SET
+    #                 tenant_id=?, month_year=?, rent_amount=?, gas_bill=?, water_bill=?,
+    #                 electricity_bill=?, total_amount=?, paid_amount=?, balance_amount=?,
+    #                 payment_date=?, status=?
+    #                 WHERE id=?''',
+    #                 (tenant_id, month_year, rent, gas, water, electricity,
+    #                 total, paid, balance, payment_date_var.get(), status,
+    #                 editing_payment_id))
+
+    #             editing_payment_id = None
+
+    #         conn.commit()
+    #         conn.close()
+            
+    #         messagebox.showinfo("Success", "Payment recorded successfully!")
+    #         clear_form()
+    #         load_paid_payments()
+    #         load_pending_payments()
+            
+    #     except ValueError:
+    #         messagebox.showerror("Input Error", "Please enter valid numbers in amount fields")
+    #     except Exception as e:
+    #         messagebox.showerror("Error", f"Failed to save payment: {str(e)}")
 
     def clear_form():
         # Clear the payment form
@@ -796,7 +945,6 @@ def open_payments():
             messagebox.showwarning("Warning", "Please select a payment to delete")
             return
         
-        # Get values from selected row
         values = tree_top.item(selected[0])['values']
         if len(values) < 5:
             return
@@ -805,12 +953,12 @@ def open_payments():
         month_year = values[4]
         
         if messagebox.askyesno("Confirm Delete", 
-                              f"Delete payment record for {tenant_name} ({month_year})?"):
+                            f"Delete payment record for {tenant_name} ({month_year})?"):
             
             conn = get_connection()
             c = conn.cursor()
             
-            # Find payment ID
+            # Find payment ID and collection info
             c.execute("""
                 SELECT p.id, p.paid_amount, p.collection_id, t.building_name 
                 FROM payments p
@@ -825,14 +973,14 @@ def open_payments():
                 collection_id = result[2]
                 building_name = result[3]
 
-                # First, add the amount back to building collection
+                # Add the amount back to the collection
                 c.execute("""
                     UPDATE building_collections
                     SET remaining_amount = remaining_amount + ?
                     WHERE id = ?
                 """, (paid_amount, collection_id))
 
-                # delete payment
+                # Delete payment
                 c.execute("DELETE FROM payments WHERE id=?", (payment_id,))
                 conn.commit()
                 messagebox.showinfo("Success", "Payment deleted successfully and amount restored to building collection!")
@@ -844,6 +992,60 @@ def open_payments():
                 messagebox.showerror("Error", "Payment not found!")
             
             conn.close()
+    # def delete_payment():
+    #     selected = tree_top.selection()
+    #     if not selected:
+    #         messagebox.showwarning("Warning", "Please select a payment to delete")
+    #         return
+        
+    #     # Get values from selected row
+    #     values = tree_top.item(selected[0])['values']
+    #     if len(values) < 5:
+    #         return
+            
+    #     tenant_name = values[1] 
+    #     month_year = values[4]
+        
+    #     if messagebox.askyesno("Confirm Delete", 
+    #                           f"Delete payment record for {tenant_name} ({month_year})?"):
+            
+    #         conn = get_connection()
+    #         c = conn.cursor()
+            
+    #         # Find payment ID
+    #         c.execute("""
+    #             SELECT p.id, p.paid_amount, p.collection_id, t.building_name 
+    #             FROM payments p
+    #             JOIN tenants t ON p.tenant_id = t.id
+    #             WHERE t.name=? AND p.month_year=?
+    #         """, (tenant_name, month_year))
+            
+    #         result = c.fetchone()
+    #         if result:
+    #             payment_id = result[0]
+    #             paid_amount = float(result[1])
+    #             collection_id = result[2]
+    #             building_name = result[3]
+
+    #             # First, add the amount back to building collection
+    #             c.execute("""
+    #                 UPDATE building_collections
+    #                 SET remaining_amount = remaining_amount + ?
+    #                 WHERE id = ?
+    #             """, (paid_amount, collection_id))
+
+    #             # delete payment
+    #             c.execute("DELETE FROM payments WHERE id=?", (payment_id,))
+    #             conn.commit()
+    #             messagebox.showinfo("Success", "Payment deleted successfully and amount restored to building collection!")
+                
+    #             # Refresh both tables
+    #             load_paid_payments()
+    #             load_pending_payments()
+    #         else:
+    #             messagebox.showerror("Error", "Payment not found!")
+            
+    #         conn.close()
 
     def load_paid_payments():
         # Load paid/partial payments
