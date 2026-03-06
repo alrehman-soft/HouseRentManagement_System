@@ -29,7 +29,7 @@ def open_payments():
 
     # --------------- Building Collection Button ---------------
     tk.Button(top_frame, text="Building Collection", command=open_building_collection,
-            bg="#0f172a", fg="white", font=("Segoe UI", 10, "bold"), width=20).pack(side="left")
+            bg="#065021", fg="white", font=("Segoe UI", 10, "bold"), width=20, height=2, cursor="hand2").pack(side="left")
     
     # ========== MAIN CONTENT WITH SCROLLBAR ==========
     # Create a container for canvas and scrollbar
@@ -812,7 +812,8 @@ def open_payments():
             
             # Find payment ID
             c.execute("""
-                SELECT p.id FROM payments p
+                SELECT p.id, p.paid_amount, p.collection_id, t.building_name 
+                FROM payments p
                 JOIN tenants t ON p.tenant_id = t.id
                 WHERE t.name=? AND p.month_year=?
             """, (tenant_name, month_year))
@@ -820,9 +821,21 @@ def open_payments():
             result = c.fetchone()
             if result:
                 payment_id = result[0]
+                paid_amount = float(result[1])
+                collection_id = result[2]
+                building_name = result[3]
+
+                # First, add the amount back to building collection
+                c.execute("""
+                    UPDATE building_collections
+                    SET remaining_amount = remaining_amount + ?
+                    WHERE id = ?
+                """, (paid_amount, collection_id))
+
+                # delete payment
                 c.execute("DELETE FROM payments WHERE id=?", (payment_id,))
                 conn.commit()
-                messagebox.showinfo("Success", "Payment deleted successfully!")
+                messagebox.showinfo("Success", "Payment deleted successfully and amount restored to building collection!")
                 
                 # Refresh both tables
                 load_paid_payments()
@@ -895,7 +908,6 @@ def open_payments():
             tree_top.insert("", "end", values=formatted_values)
 
     def load_pending_payments():
-        # Load ALL pending payments
         # Clear table
         for item in tree_bottom.get_children():
             tree_bottom.delete(item)
@@ -903,121 +915,180 @@ def open_payments():
         conn = get_connection()
         c = conn.cursor()
         
-        # Current month for summary
         current_month = datetime.now().strftime("%B")
         current_year = str(datetime.now().year)
         current_month_year = f"{current_month}-{current_year}"
         
-        # Get tenants who NEVER paid
-        c.execute("""
-            SELECT 
-                t.id, t.name, t.building_name, t.flat_no, t.phone, t.rent_amount
-            FROM tenants t
-            WHERE t.status = 'Active'
-            AND NOT EXISTS (
-                SELECT 1 FROM payments p 
-                WHERE p.tenant_id = t.id 
-                AND p.status = 'Paid'
-            )
-            ORDER BY t.building_name, t.flat_no
-        """)
-        never_paid_tenants = c.fetchall()
+        # GET SEARCH FILTERS
+        selected_month = search_month_var_bottom.get().strip()
+        selected_year = search_year_var_bottom.get().strip()
         
-        # Get tenants
+        # Create search month-year
+        if selected_month and selected_year:
+            search_month_year = f"{selected_month}-{selected_year}"
+        else:
+            search_month_year = None
+        
+        # Get current date for comparison
+        current_date = datetime.now()
+        
+        # Get ALL active tenants
         c.execute("""
-            SELECT 
-                t.id, t.name, t.building_name, t.flat_no, t.phone, t.rent_amount,
-                p.month_year
-            FROM tenants t
-            JOIN payments p ON t.id = p.tenant_id
-            WHERE t.status = 'Active' AND p.status IN ('Pending', 'Partial')
-            ORDER BY t.name, p.month_year DESC
+            SELECT id, name, building_name, flat_no, phone, rent_amount
+            FROM tenants 
+            WHERE status='Active'
+            ORDER BY building_name, flat_no
         """)
-        pending_tenants = c.fetchall()
+        all_tenants = c.fetchall()
+        
+        # Get ALL payments
+        c.execute("""
+            SELECT tenant_id, month_year, status, paid_amount, total_amount
+            FROM payments
+            ORDER BY tenant_id, month_year
+        """)
+        all_payments = c.fetchall()
         conn.close()
         
-        # ===== SUMMARY: Only current month =====
-        current_pending_count = 0
-        current_pending_amount = 0
+        # Organize payments by tenant
+        payments_by_tenant = {}
+        for payment in all_payments:
+            tenant_id = payment[0]
+            month_year = payment[1]
+            
+            # Future month check
+            try:
+                month, year = month_year.split('-')
+                payment_date = datetime.strptime(f"01-{month}-{year}", "%d-%B-%Y")
+                
+                # Ignore Future month pending
+                if payment_date > current_date:
+                    continue 
+            except:
+                continue
+            
+            if tenant_id not in payments_by_tenant:
+                payments_by_tenant[tenant_id] = []
+            payments_by_tenant[tenant_id].append({
+                'month_year': month_year,
+                'status': payment[2],
+                'paid': payment[3],
+                'total': payment[4]
+            })
         
-        # Add never paid tenants
-        for tenant in never_paid_tenants:
-            current_pending_count += 1
-            current_pending_amount += tenant[5] or 0
-        
-        # Add specific pending months
-        for tenant in pending_tenants:
-            if tenant[6] == current_month_year:
-                current_pending_count += 1
-                current_pending_amount += tenant[5] or 0
-        
-        # Update summary labels
-        pending_count_var.set(f"Current Month ({current_month_year}) Pending: {current_pending_count}")
-        pending_amount_var.set(f"Amount: Rs. {current_pending_amount:,.2f}")
-        
-        # ===== TABLE: Show ALL pending =====
+        pending_count = 0
+        pending_amount = 0
         row_num = 0
         
-        # Section 1: Never paid tenants
-        if never_paid_tenants:
-            tree_bottom.insert("", "end", values=(
-                "", "═══ NEVER PAID TENANTS ═══", "", "", "", "", ""
-            ), tags=('section',))
-            tree_bottom.tag_configure('section', background='#1e3a8a', foreground='white')
-            
-            for tenant in never_paid_tenants:
-                row_num += 1
-                tree_bottom.insert("", "end", values=(
-                    row_num,
-                    tenant[1], tenant[2], tenant[3], tenant[4],
-                    f"{tenant[5]:,.2f}" if tenant[5] else "0.00",
-                    "❌ Never Paid"
-                ), tags=('never',))
-            
-            tree_bottom.tag_configure('never', background='#ffcccc')
+        # Track tenants already shown
+        tenants_shown = set()
         
-        # Section 2: Specific pending months
-        if pending_tenants:
-            if never_paid_tenants:
-                tree_bottom.insert("", "end", values=(
-                    "", "═══ PENDING BY MONTH ═══", "", "", "", "", ""
-                ), tags=('section',))
+        # FILTER APPLY FUNCTION
+        def should_show_month(month_year):
+            """Check if this month should be shown based on search filters"""
+            if not search_month_year:
+                return True 
             
-            current_tenant = None
-            for tenant in pending_tenants:
-                # Show tenant name
-                if current_tenant != tenant[1]:
-                    current_tenant = tenant[1]
+            # Exact match
+            return month_year == search_month_year
+        
+        # FIRST: Current month pending check
+        if should_show_month(current_month_year):
+            for tenant in all_tenants:
+                tenant_id, name, building, flat, phone, rent = tenant
+                tenant_payments = payments_by_tenant.get(tenant_id, [])
+                
+                # Check if current month payment exists
+                current_month_found = False
+                
+                for payment in tenant_payments:
+                    if payment['month_year'] == current_month_year:
+                        current_month_found = True
+                        if payment['status'] in ['Pending', 'Partial']:
+                            # Current month pending/partial
+                            pending_count += 1
+                            pending_amount += rent
+                            tenants_shown.add(tenant_id)
+                            
+                            row_num += 1
+                            tree_bottom.insert("", "end", values=(
+                                row_num, name, building, flat, phone,
+                                f"{rent:,.2f}" if rent else "0.00",
+                                f"{payment['status']} - {current_month_year}"
+                            ), tags=('current_pending',))
+                        break
+                
+                # No payment record for current month = PENDING
+                if not current_month_found:
+                    pending_count += 1
+                    pending_amount += rent
+                    tenants_shown.add(tenant_id)
+                    
+                    row_num += 1
                     tree_bottom.insert("", "end", values=(
-                        "", f"{tenant[1]}", "", "", "", "", ""
-                    ), tags=('sub',))
-                    tree_bottom.tag_configure('sub', background='#e6f3ff', font=('Segoe UI', 9, 'bold'))
-                
-                row_num += 1
-                # Highlight current month
-                if tenant[6] == current_month_year:
-                    status = f"{tenant[6]} (Current)"
-                    tag = 'current'
-                else:
-                    status = f"📅 {tenant[6]}"
-                    tag = 'past'
-                
-                tree_bottom.insert("", "end", values=(
-                    row_num,
-                    tenant[1], tenant[2], tenant[3], tenant[4],
-                    f"{tenant[5]:,.2f}" if tenant[5] else "0.00",
-                    status
-                ), tags=(tag,))
-            
-            tree_bottom.tag_configure('current', background='#fff3cd')
-            tree_bottom.tag_configure('past', background='#f8f9fa')
+                        row_num, name, building, flat, phone,
+                        f"{rent:,.2f}" if rent else "0.00",
+                        f"No Payment - {current_month_year}"
+                    ), tags=('no_payment',))
         
-        # No pending
+        # SECOND: Past pending months (only if search matches)
+        for tenant in all_tenants:
+            tenant_id, name, building, flat, phone, rent = tenant
+            tenant_payments = payments_by_tenant.get(tenant_id, [])
+            
+            for payment in tenant_payments:
+                month_year = payment['month_year']
+                
+                # Skip if doesn't match search filter
+                if not should_show_month(month_year):
+                    continue
+                
+                # Skip current month
+                if month_year == current_month_year:
+                    continue
+                
+                # Double-check future months
+                try:
+                    month, year = month_year.split('-')
+                    payment_date = datetime.strptime(f"01-{month}-{year}", "%d-%B-%Y")
+                    
+                    # Skip Future month
+                    if payment_date > current_date:
+                        continue
+                except:
+                    continue
+                
+                if payment['status'] in ['Pending', 'Partial']:
+                    row_num += 1
+                    tree_bottom.insert("", "end", values=(
+                        row_num, name, building, flat, phone,
+                        f"{rent:,.2f}" if rent else "0.00",
+                        f"📅 {payment['status']} - {month_year}"
+                    ), tags=('past_pending',))
+        
+        # Update summary - ONLY if showing current month
+        if should_show_month(current_month_year):
+            pending_count_var.set(f"Current Month ({current_month_year}) Pending: {pending_count}")
+            pending_amount_var.set(f"Amount: Rs. {pending_amount:,.2f}")
+        else:
+            # Agar future month search kar rahe hain to summary zero dikhao
+            pending_count_var.set(f"Search Results for {search_month_year}: {row_num} records")
+            pending_amount_var.set(f"Amount: Rs. 0")
+        
+        # Configure tags
+        tree_bottom.tag_configure('current_pending', background="#f2e9e9")
+        tree_bottom.tag_configure('no_payment', background="#fdc8c8")
+        tree_bottom.tag_configure('past_pending', background="#fbeec1")
+        
         if row_num == 0:
-            tree_bottom.insert("", "end", values=(
-                1, "All payments up to date!", "-", "-", "-", "-", "No Pending"
-            ))
-            tree_bottom.tag_configure('all_paid', background='#d4edda')
+            if search_month_year:
+                tree_bottom.insert("", "end", values=(
+                    1, f"No pending for {search_month_year}", "-", "-", "-", "-", "-"
+                ))
+            else:
+                tree_bottom.insert("", "end", values=(
+                    1, "All payments up to date!", "-", "-", "-", "-", "No Pending"
+                ))
 
 
     def on_pending_double_click(event):
@@ -1062,7 +1133,7 @@ def open_payments():
     paid_var.trace('w', check_form_validity)
 
     tk.Button(button_frame, text="Clear Form", command=clear_form,
-              bg="#f97316", fg="white", font=("Segoe UI", 11, "bold"),
+              bg="#fb822c", fg="white", font=("Segoe UI", 11, "bold"),
               width=14, height=1, relief="raised", bd=2, cursor="hand2").pack(side="left", padx=5)
 
     # Buttons for top table

@@ -16,7 +16,7 @@ def start_app():
     
     # Create main window
     root = tk.Tk()
-    root.title("Abu Huraira Enterprises (HRMS) - Created by: .ARS")
+    root.title("Abu Huraira Enterprises - Created by: .ARS")
     root.geometry("1000x600")
     root.config(bg="#ffffff")
 

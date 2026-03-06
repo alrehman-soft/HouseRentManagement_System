@@ -311,43 +311,49 @@ def open_tenant_list():
 
         # ================= Update Function =================
         def update_tenant():
-            conn = get_connection()
-            c = conn.cursor()
+            try:
 
-            c.execute("""
-                UPDATE tenants
-                SET name=?, father_name=?, cnic=?, phone=?, emergency_contact=?,
-                    profession=?, building_name=?, floor=?, flat_no=?, entry_date=?,
-                    exit_date=?, status=?, owner_name=?, owner_phone=?, rent_amount=?,
-                    security_deposit=?, advance_amount=?, photo_path=?, notes=?
-                WHERE id=?
-            """, (
-                entries[0].get(),
-                entries[1].get(),
-                entries[2].get(),
-                entries[3].get(),
-                entries[4].get(),
-                entries[5].get(),
-                entries[6].get(),
-                entries[7].get(),
-                entries[8].get(),
-                entries[9].get(),
-                entries[10].get(),
-                entries[11].get(),
-                entries[12].get(),
-                entries[13].get(),
-                entries[14].get(),
-                entries[15].get(),
-                entries[16].get(),
-                photo_path,
-                entries[17].get(),  # Notes
-                tenant[0]
-            ))
-            conn.commit()
-            conn.close()
-            messagebox.showinfo("Success", "Tenant updated successfully!")
-            edit_win.destroy()
-            load_tenants()
+                conn = get_connection()
+                c = conn.cursor()
+
+                c.execute("""
+                    UPDATE tenants
+                    SET name=?, father_name=?, cnic=?, phone=?, emergency_contact=?,
+                        profession=?, building_name=?, floor=?, flat_no=?, entry_date=?,
+                        exit_date=?, status=?, owner_name=?, owner_phone=?, rent_amount=?,
+                        security_deposit=?, advance_amount=?, photo_path=?, notes=?
+                    WHERE id=?
+                """, (
+                    entries[0].get(),
+                    entries[1].get(),
+                    entries[2].get(),
+                    entries[3].get(),
+                    entries[4].get(),
+                    entries[5].get(),
+                    entries[6].get(),
+                    entries[7].get(),
+                    entries[8].get(),
+                    entries[9].get(),
+                    entries[10].get(),
+                    entries[11].get(),
+                    entries[12].get(),
+                    entries[13].get(),
+                    entries[14].get(),
+                    entries[15].get(),
+                    entries[16].get(),
+                    photo_path,
+                    entries[17].get(),  # Notes
+                    tenant[0]
+                ))
+                conn.commit()
+                conn.close()
+                messagebox.showinfo("Success", "Tenant updated successfully!")
+                edit_win.destroy()
+                load_tenants()
+            except ValueError as e:
+                messagebox.showerror("Error", "Please check numeric fields (Rent, Security, Advance)")
+            except Exception as e:
+                messagebox.showerror("Error", f"Update failed: {str(e)}")
 
         tk.Button(scroll_frame, text="Update",
                 bg="#397112", fg="white", width=18,height=2,font=("Arial, 12"),
