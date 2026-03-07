@@ -49,6 +49,8 @@ def open_building_collection():
     building_combo = ttk.Combobox(form, textvariable=building_var, state="readonly", width=25)
     building_combo.grid(row=0, column=1, pady=8, padx=10)
 
+    building_combo.bind("<MouseWheel>", lambda e: "break")
+
     tk.Label(form, text="Collector Name *", bg="#f8fafc",
              font=("Segoe UI", 10, "bold italic")).grid(row=1, column=0, sticky="w", pady=8)
     collector_label = tk.Label(form, textvariable=collector_var,
@@ -72,6 +74,8 @@ def open_building_collection():
                                 values=["Select Invest type", "Owner", "Bank Deposit", "Cash in Hand"],
                                 state="readonly", width=25)
     invest_combo.grid(row=4, column=1, pady=8, padx=10)
+
+    invest_combo.bind("<MouseWheel>", lambda e: "break")
     invest_combo.set("Select Invest type")
 
     # ================= LOAD BUILDINGS =================

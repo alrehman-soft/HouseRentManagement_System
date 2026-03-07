@@ -37,7 +37,7 @@ def open_annual_report(parent):
     tk.Label(control_frame, text="Select Year:", bg="#f8fafc", font=("Segoe UI", 10)).grid(row=0, column=0, padx=5, pady=5, sticky="w")
     year_var = tk.StringVar()
     current_year = datetime.now().year
-    years = [str(i) for i in range(current_year-2, current_year+2)]
+    years = [str(i) for i in range(current_year, current_year+100)]
     year_combo = ttk.Combobox(control_frame, textvariable=year_var, values=years, state="readonly", width=12)
     year_combo.grid(row=0, column=1, padx=5, pady=5)
     year_combo.set(str(current_year))

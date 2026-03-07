@@ -350,6 +350,7 @@ def add_tenant_screen():
     floor_combo = ttk.Combobox(location_frame, textvariable=floor_var, 
                               values=[str(i) for i in range(1, 11)], state="readonly", width=22)
     floor_combo.grid(row=0, column=3, padx=5, pady=5)
+    floor_combo.bind("<MouseWheel>", lambda e: "break")
     floor_combo.set("1")  # Default value
 
     # Flat No

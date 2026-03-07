@@ -57,7 +57,7 @@ def open_monthly_report(parent):
              font=("Segoe UI", 10)).grid(row=0, column=4, padx=20, pady=5, sticky="w")
     
     current_year = datetime.now().year
-    years = [str(i) for i in range(current_year-2, current_year+2)]
+    years = [str(i) for i in range(current_year, current_year+100)]
     year_var = tk.StringVar(value=str(current_year))
     year_combo = ttk.Combobox(control_frame, textvariable=year_var,
                                values=years, state="readonly", width=8)

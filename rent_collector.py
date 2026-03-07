@@ -125,6 +125,8 @@ def open_rent_collector():
     building_combo = ttk.Combobox(form_frame, textvariable=building_var, 
                                   state="readonly", width=28, font=("Segoe UI", 11))
     building_combo.grid(row=row, column=1, pady=8, padx=5)
+
+    building_combo.bind("<MouseWheel>", lambda e: "break")
     entries['building_name'] = building_combo
     row += 1
 

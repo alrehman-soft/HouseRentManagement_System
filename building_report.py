@@ -39,7 +39,7 @@ def open_building_report(parent):
     
     year_var = tk.StringVar()
     current_year = datetime.now().year
-    years = [str(i) for i in range(current_year-2, current_year+2)]
+    years = [str(i) for i in range(current_year, current_year+100)]
     year_combo = ttk.Combobox(control_frame, textvariable=year_var, 
                               values=years, state="readonly", width=12)
     year_combo.grid(row=0, column=1, padx=5, pady=5)
