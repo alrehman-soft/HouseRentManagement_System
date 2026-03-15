@@ -105,10 +105,23 @@ def open_annual_report(parent):
               bg="#10b981", fg="white", font=("Segoe UI", 10, "bold"), width=12).grid(row=0, column=6, padx=5, pady=5)
     return tree
 
+
 # ==================== GENERATE ANNUAL REPORT ====================
 def generate_annual_report(tree, year, building):
     for row in tree.get_children():
         tree.delete(row)
+
+    # ===== Check future month=====
+    current_date = datetime.now()
+    if int(year) > current_date.year:
+        messagebox.showwarning("Warning", 
+            f"Cannot show future year: {year}\n\nOnly current and past years are available.")
+        return
+    
+    if int(year) < current_year:
+        months_to_show = all_months[start_index:]  # Past year
+    elif int(year) == current_year:
+        months_to_show = all_months[start_index:current_month_num]
     
     conn = get_connection()
     c = conn.cursor()

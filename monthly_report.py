@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from create_database import get_connection
 from datetime import datetime
 import print_utils
@@ -134,6 +134,22 @@ def load_monthly_data(tree, building, month, year):
     # clear old rows
     for row in tree.get_children():
         tree.delete(row)
+
+    try:
+        selected_date = f"{month}-{year}"
+        current_date = datetime.now().strftime("%B-%Y")
+        
+        # Convert to comparable format
+        selected = datetime.strptime(selected_date, "%B-%Y")
+        current = datetime.strptime(current_date, "%B-%Y")
+        
+        if selected > current:
+            messagebox.showwarning("Warning", 
+                f"Cannot show future month: {month}-{year}\nOnly current and past months available.")
+            return
+    except Exception as e:
+        messagebox.showerror("Error", f"Date validation error: {str(e)}")
+        return
 
     conn = get_connection()
     c = conn.cursor()

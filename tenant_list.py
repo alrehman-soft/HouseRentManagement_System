@@ -198,6 +198,7 @@ def open_tenant_list():
         tenant_id = tree.item(selected[0])['values'][1]
         show_tenant_details(tenant_id)
 
+
     def edit_tenant():
         selected = tree.selection()
         if not selected:
@@ -220,145 +221,329 @@ def open_tenant_list():
         open_edit_window(tenant)
 
     def open_edit_window(tenant):
-        edit_win = tk.Toplevel()
-        edit_win.title("Edit Tenant")
-        edit_win.geometry("750x700")
-        edit_win.resizable(False, False)
+            
+            edit_win = tk.Toplevel()
+            edit_win.title("Edit Tenant")
+            
+            # ========== RESPONSIVE SIZE - Different screens ke according adjust ==========
+            screen_width = edit_win.winfo_screenwidth()
+            screen_height = edit_win.winfo_screenheight()
+            
+            # Window size: 80% of screen height, 60% of screen width
+            window_height = min(700, int(screen_height * 0.8))
+            window_width = min(800, int(screen_width * 0.6))
+            
+            # Center the window
+            x = (screen_width - window_width) // 2
+            y = (screen_height - window_height) // 3
+            
+            edit_win.geometry(f"{window_width}x{window_height}+{x}+{y}")
+            edit_win.resizable(False, False)
+            edit_win.configure(bg="#f0f2f5")
 
-        edit_win.configure(bg="#f0f2f5")
+            # ================= Scrollable Frame Setup =================
+            canvas = tk.Canvas(edit_win)
+            scrollbar = ttk.Scrollbar(edit_win, orient="vertical", command=canvas.yview)
+            scroll_frame = tk.Frame(canvas)
 
-        # ================= Scrollable Frame Setup =================
-        canvas = tk.Canvas(edit_win)
-        scrollbar = ttk.Scrollbar(edit_win, orient="vertical", command=canvas.yview)
-        scroll_frame = tk.Frame(canvas)
-
-        scroll_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0,0), window=scroll_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        # ================= Photo Section =================
-        photo_path = tenant[18] if tenant[18] else ""
-
-        photo_label = tk.Label(scroll_frame,bg="#f0f2f5",relief="solid",bd=1)
-        photo_label.grid(row=0, column=2, rowspan=8, padx=30, pady=10)
-
-        def show_photo(path):
-            if path and os.path.exists(path):           
-                try:
-                    img = Image.open(path)
-                    img = img.resize((250, 300), Image.LANCZOS)
-                    img = ImageTk.PhotoImage(img)
-
-                    photo_label.config(image=img, text="")
-                    photo_label.image = img 
-                    
-                except Exception as e:
-                    photo_label.config(text="No Photo", image="", font=("Arial, 12"),
-                                        anchor="center")
-                    photo_label.image = None
-
-            else:
-                photo_label.config(text="No Photo", image="", font=("Arial, 12"), anchor="center")
-                photo_label.image = None
-        show_photo(photo_path)
-
-        def change_photo():
-            from tkinter import filedialog
-            file = filedialog.askopenfilename(
-                filetypes=[('Image files', '*.jpg *.jpeg *.png *.gif *.bmp'),
-                           ('All files', '*.*')
-                ]
+            scroll_frame.bind(
+                "<Configure>",
+                lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
             )
-            if file:
-                nonlocal photo_path
-                photo_path = file
-                show_photo(photo_path)
 
-        tk.Button(scroll_frame, text="Change Photo",
-                command=change_photo).grid(row=8, column=2, pady=10)
+            canvas.create_window((0,0), window=scroll_frame, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
 
-        # ================= Form Fields =================
-        labels = [
-            "Name", "Father Name", "CNIC", "Phone",
-            "Emergency Contact", "Profession", "Building Name",
-            "Floor", "Flat No", "Entry Date", "Exit Date",
-            "Status", "Owner Name", "Owner Phone", "Rent Amount",
-            "Security Deposit", "Advance Amount", "Additional Note"
-        ]
-        entries = []
+            canvas.pack(side="left", fill="both", expand=True)
+            scrollbar.pack(side="right", fill="y")
 
-        for i, label in enumerate(labels):
-            tk.Label(scroll_frame, text=label).grid(row=i, column=0, padx=10, pady=5, sticky="w")
+            # ================= Photo Section =================
+            photo_path = tenant[18] if tenant[18] else ""
 
-            if label == "Status":
-                entry = ttk.Combobox(scroll_frame, values=["Active", "Inactive"], state="readonly")
-                entry.set(tenant[12])
-            else:
-                entry = tk.Entry(scroll_frame, width=30)
-                if label == "Additional Note":
-                    entry.insert(0, tenant[20] if len(tenant) > 20 else "")
+            photo_label = tk.Label(scroll_frame,bg="#f0f2f5",relief="solid",bd=1)
+            photo_label.grid(row=0, column=2, rowspan=8, padx=30, pady=10)
+
+            def show_photo(path):
+                if path and os.path.exists(path):           
+                    try:
+                        img = Image.open(path)
+                        img = img.resize((250, 300), Image.LANCZOS)
+                        img = ImageTk.PhotoImage(img)
+
+                        photo_label.config(image=img, text="")
+                        photo_label.image = img 
+                        
+                    except Exception as e:
+                        photo_label.config(text="No Photo", image="", font=("Arial, 12"),
+                                            anchor="center")
+                        photo_label.image = None
+
                 else:
-                    entry.insert(0, tenant[i+1])
-            entry.grid(row=i, column=1, padx=10, pady=5)
-            entries.append(entry)
+                    photo_label.config(text="No Photo", image="", font=("Arial, 12"), anchor="center")
+                    photo_label.image = None
+            show_photo(photo_path)
 
-        # ================= Update Function =================
-        def update_tenant():
-            try:
+            def change_photo():
+                from tkinter import filedialog
+                file = filedialog.askopenfilename(
+                    filetypes=[('Image files', '*.jpg *.jpeg *.png *.gif *.bmp'),
+                            ('All files', '*.*')
+                    ]
+                )
+                if file:
+                    nonlocal photo_path
+                    photo_path = file
+                    show_photo(photo_path)
 
-                conn = get_connection()
-                c = conn.cursor()
+            tk.Button(scroll_frame, text="Change Photo",
+                    command=change_photo).grid(row=8, column=2, pady=10)
 
-                c.execute("""
-                    UPDATE tenants
-                    SET name=?, father_name=?, cnic=?, phone=?, emergency_contact=?,
-                        profession=?, building_name=?, floor=?, flat_no=?, entry_date=?,
-                        exit_date=?, status=?, owner_name=?, owner_phone=?, rent_amount=?,
-                        security_deposit=?, advance_amount=?, photo_path=?, notes=?
-                    WHERE id=?
-                """, (
-                    entries[0].get(),
-                    entries[1].get(),
-                    entries[2].get(),
-                    entries[3].get(),
-                    entries[4].get(),
-                    entries[5].get(),
-                    entries[6].get(),
-                    entries[7].get(),
-                    entries[8].get(),
-                    entries[9].get(),
-                    entries[10].get(),
-                    entries[11].get(),
-                    entries[12].get(),
-                    entries[13].get(),
-                    entries[14].get(),
-                    entries[15].get(),
-                    entries[16].get(),
-                    photo_path,
-                    entries[17].get(),  # Notes
-                    tenant[0]
-                ))
-                conn.commit()
-                conn.close()
-                messagebox.showinfo("Success", "Tenant updated successfully!")
-                edit_win.destroy()
-                load_tenants()
-            except ValueError as e:
-                messagebox.showerror("Error", "Please check numeric fields (Rent, Security, Advance)")
-            except Exception as e:
-                messagebox.showerror("Error", f"Update failed: {str(e)}")
+            # ================= Form Fields =================
+            labels = [
+                "Name", "Father Name", "CNIC", "Phone",
+                "Emergency Contact", "Profession", "Building Name",
+                "Floor", "Flat No", "Entry Date", "Exit Date",
+                "Status", "Owner Name", "Owner Phone", "Rent Amount",
+                "Security Deposit", "Advance Amount", "Additional Note"
+            ]
+            entries = []
 
-        tk.Button(scroll_frame, text="Update",
-                bg="#397112", fg="white", width=18,height=2,font=("Arial, 12"),
-                command=update_tenant).grid(row=len(labels)+1,
-                                            columnspan=2, pady=20)
+            for i, label in enumerate(labels):
+                tk.Label(scroll_frame, text=label).grid(row=i, column=0, padx=10, pady=5, sticky="w")
+
+                if label == "Status":
+                    entry = ttk.Combobox(scroll_frame, values=["Active", "Inactive"], state="readonly")
+                    entry.set(tenant[12])
+                else:
+                    entry = tk.Entry(scroll_frame, width=30)
+                    if label == "Additional Note":
+                        entry.insert(0, tenant[20] if len(tenant) > 20 else "")
+                    else:
+                        entry.insert(0, tenant[i+1])
+                entry.grid(row=i, column=1, padx=10, pady=5)
+                entries.append(entry)
+
+            # ================= Update Function =================
+            def update_tenant():
+                try:
+
+                    conn = get_connection()
+                    c = conn.cursor()
+
+                    c.execute("""
+                        UPDATE tenants
+                        SET name=?, father_name=?, cnic=?, phone=?, emergency_contact=?,
+                            profession=?, building_name=?, floor=?, flat_no=?, entry_date=?,
+                            exit_date=?, status=?, owner_name=?, owner_phone=?, rent_amount=?,
+                            security_deposit=?, advance_amount=?, photo_path=?, notes=?
+                        WHERE id=?
+                    """, (
+                        entries[0].get(),
+                        entries[1].get(),
+                        entries[2].get(),
+                        entries[3].get(),
+                        entries[4].get(),
+                        entries[5].get(),
+                        entries[6].get(),
+                        entries[7].get(),
+                        entries[8].get(),
+                        entries[9].get(),
+                        entries[10].get(),
+                        entries[11].get(),
+                        entries[12].get(),
+                        entries[13].get(),
+                        entries[14].get(),
+                        entries[15].get(),
+                        entries[16].get(),
+                        photo_path,
+                        entries[17].get(),  # Notes
+                        tenant[0]
+                    ))
+                    conn.commit()
+                    conn.close()
+                    messagebox.showinfo("Success", "Tenant updated successfully!")
+                    edit_win.destroy()
+                    load_tenants()
+                except ValueError as e:
+                    messagebox.showerror("Error", "Please check numeric fields (Rent, Security, Advance)")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Update failed: {str(e)}")
+
+            # ================= Button Frame =================
+            button_frame = tk.Frame(scroll_frame, bg="#f0f2f5")
+            button_frame.grid(row=len(labels)+2, columnspan=3, pady=20)
+
+            # Update Button
+            tk.Button(button_frame, text="💾 Update",
+                    bg="#2397FD", fg="white", width=18, height=2, font=("Arial", 12, "bold"),
+                    command=update_tenant).pack(side=tk.LEFT, padx=10)
+
+            # ========== CANCEL BUTTON ADDED ==========
+            tk.Button(button_frame, text="✖ Cancel",
+                    bg="#f5dd8d", fg="white", width=18, height=2, font=("Arial", 12),
+                    command=edit_win.destroy).pack(side=tk.LEFT, padx=10)
+            
+    # def edit_tenant():
+    #     selected = tree.selection()
+    #     if not selected:
+    #         messagebox.showwarning("Warning", "Please select a tenant to edit")
+    #         return
+
+    #     tenant_id = tree.item(selected[0])['values'][1]
+
+    #     conn = get_connection()
+    #     c = conn.cursor()
+
+    #     # Fetch tenant data
+    #     c.execute("SELECT * FROM tenants WHERE id=?", (tenant_id,))
+    #     tenant = c.fetchone()
+    #     conn.close()
+
+    #     if not tenant:
+    #         messagebox.showerror("Error", "Tenant not found!")
+    #         return
+    #     open_edit_window(tenant)
+
+    # def open_edit_window(tenant):
+    #     edit_win = tk.Toplevel()
+    #     edit_win.title("Edit Tenant")
+    #     edit_win.geometry("750x650")
+    #     edit_win.resizable(False, False)
+
+    #     edit_win.configure(bg="#f0f2f5")
+
+    #     # ================= Scrollable Frame Setup =================
+    #     canvas = tk.Canvas(edit_win)
+    #     scrollbar = ttk.Scrollbar(edit_win, orient="vertical", command=canvas.yview)
+    #     scroll_frame = tk.Frame(canvas)
+
+    #     scroll_frame.bind(
+    #         "<Configure>",
+    #         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    #     )
+
+    #     canvas.create_window((0,0), window=scroll_frame, anchor="nw")
+    #     canvas.configure(yscrollcommand=scrollbar.set)
+
+    #     canvas.pack(side="left", fill="both", expand=True)
+    #     scrollbar.pack(side="right", fill="y")
+
+    #     # ================= Photo Section =================
+    #     photo_path = tenant[18] if tenant[18] else ""
+
+    #     photo_label = tk.Label(scroll_frame,bg="#f0f2f5",relief="solid",bd=1)
+    #     photo_label.grid(row=0, column=2, rowspan=8, padx=30, pady=10)
+
+    #     def show_photo(path):
+    #         if path and os.path.exists(path):           
+    #             try:
+    #                 img = Image.open(path)
+    #                 img = img.resize((250, 300), Image.LANCZOS)
+    #                 img = ImageTk.PhotoImage(img)
+
+    #                 photo_label.config(image=img, text="")
+    #                 photo_label.image = img 
+                    
+    #             except Exception as e:
+    #                 photo_label.config(text="No Photo", image="", font=("Arial, 12"),
+    #                                     anchor="center")
+    #                 photo_label.image = None
+
+    #         else:
+    #             photo_label.config(text="No Photo", image="", font=("Arial, 12"), anchor="center")
+    #             photo_label.image = None
+    #     show_photo(photo_path)
+
+    #     def change_photo():
+    #         from tkinter import filedialog
+    #         file = filedialog.askopenfilename(
+    #             filetypes=[('Image files', '*.jpg *.jpeg *.png *.gif *.bmp'),
+    #                        ('All files', '*.*')
+    #             ]
+    #         )
+    #         if file:
+    #             nonlocal photo_path
+    #             photo_path = file
+    #             show_photo(photo_path)
+
+    #     tk.Button(scroll_frame, text="Change Photo",
+    #             command=change_photo).grid(row=8, column=2, pady=10)
+
+    #     # ================= Form Fields =================
+    #     labels = [
+    #         "Name", "Father Name", "CNIC", "Phone",
+    #         "Emergency Contact", "Profession", "Building Name",
+    #         "Floor", "Flat No", "Entry Date", "Exit Date",
+    #         "Status", "Owner Name", "Owner Phone", "Rent Amount",
+    #         "Security Deposit", "Advance Amount", "Additional Note"
+    #     ]
+    #     entries = []
+
+    #     for i, label in enumerate(labels):
+    #         tk.Label(scroll_frame, text=label).grid(row=i, column=0, padx=10, pady=5, sticky="w")
+
+    #         if label == "Status":
+    #             entry = ttk.Combobox(scroll_frame, values=["Active", "Inactive"], state="readonly")
+    #             entry.set(tenant[12])
+    #         else:
+    #             entry = tk.Entry(scroll_frame, width=30)
+    #             if label == "Additional Note":
+    #                 entry.insert(0, tenant[20] if len(tenant) > 20 else "")
+    #             else:
+    #                 entry.insert(0, tenant[i+1])
+    #         entry.grid(row=i, column=1, padx=10, pady=5)
+    #         entries.append(entry)
+
+    #     # ================= Update Function =================
+    #     def update_tenant():
+    #         try:
+
+    #             conn = get_connection()
+    #             c = conn.cursor()
+
+    #             c.execute("""
+    #                 UPDATE tenants
+    #                 SET name=?, father_name=?, cnic=?, phone=?, emergency_contact=?,
+    #                     profession=?, building_name=?, floor=?, flat_no=?, entry_date=?,
+    #                     exit_date=?, status=?, owner_name=?, owner_phone=?, rent_amount=?,
+    #                     security_deposit=?, advance_amount=?, photo_path=?, notes=?
+    #                 WHERE id=?
+    #             """, (
+    #                 entries[0].get(),
+    #                 entries[1].get(),
+    #                 entries[2].get(),
+    #                 entries[3].get(),
+    #                 entries[4].get(),
+    #                 entries[5].get(),
+    #                 entries[6].get(),
+    #                 entries[7].get(),
+    #                 entries[8].get(),
+    #                 entries[9].get(),
+    #                 entries[10].get(),
+    #                 entries[11].get(),
+    #                 entries[12].get(),
+    #                 entries[13].get(),
+    #                 entries[14].get(),
+    #                 entries[15].get(),
+    #                 entries[16].get(),
+    #                 photo_path,
+    #                 entries[17].get(),  # Notes
+    #                 tenant[0]
+    #             ))
+    #             conn.commit()
+    #             conn.close()
+    #             messagebox.showinfo("Success", "Tenant updated successfully!")
+    #             edit_win.destroy()
+    #             load_tenants()
+    #         except ValueError as e:
+    #             messagebox.showerror("Error", "Please check numeric fields (Rent, Security, Advance)")
+    #         except Exception as e:
+    #             messagebox.showerror("Error", f"Update failed: {str(e)}")
+
+    #     tk.Button(scroll_frame, text="💾 Update",
+    #             bg="#4683EB", fg="white", width=18,height=2,font=("Arial, 12"),
+    #             command=update_tenant).grid(row=len(labels)+1,
+    #                                         columnspan=2, pady=20)
 
     def mark_vacated():
         # Mark selected tenant as vacated

@@ -105,6 +105,21 @@ def generate_building_report(tree, year, report_type):
     for row in tree.get_children():
         tree.delete(row)
 
+    # ===== Check future month=====
+    current_date = datetime.now()
+    if int(year) > current_date.year:
+        messagebox.showwarning("Warning", 
+            f"Cannot show future year: {year}\n\nOnly current and past years are available.")
+        return
+    
+    months = ["January","February","March","April","May","June",
+              "July","August","September","October","November","December"]
+    
+    if int(year) == current_date.year:
+        months_to_show = months[:current_date.month]
+    else:
+        months_to_show = months
+
     conn = get_connection()
     c = conn.cursor()
 

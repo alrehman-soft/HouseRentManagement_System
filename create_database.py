@@ -1,10 +1,9 @@
 
 import sqlite3
-import os, shutil
-import sys
-import string
+import os, shutil, sys, string
 from datetime import datetime
 from tkinter import messagebox
+import pandas as pd
 
 def get_available_drives():
     drives = []
@@ -62,8 +61,7 @@ def get_login_connection():
     return conn
 
 def initialize_database():
-    backup_database()
-    """Create all necessary tables if they don't exist"""
+    # Create all necessary tables
     conn = get_connection()
     c = conn.cursor()
 
@@ -175,7 +173,7 @@ def initialize_database():
         """)
 
         conn.commit()
-        print(f"Database initialized at: {DATABASE_NAME}")
+        # print(f"Database initializsed at: {DATABASE_NAME}")
 
     except sqlite3.Error as e:
         print(f"❌ Database error: {e}")
@@ -291,16 +289,33 @@ def get_free_space(drive):
         pass
     return None
 
+# backup function
 def backup_database():
     backup_dir = os.path.join(os.path.dirname(DATABASE_NAME), "backups")
     os.makedirs(backup_dir, exist_ok=True)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_file = os.path.join(backup_dir, f"backup_{timestamp}.db")
+    # Today's backup folder
+    today = datetime.now().strftime("%Y%m%d")
+    today_backup_dir = os.path.join(backup_dir, today)
+    os.makedirs(today_backup_dir, exist_ok=True)
 
-    if os.path.exists(DATABASE_NAME):
+    # Get last backup time
+    existing_backups = [os.path.join(today_backup_dir, f) for f in os.listdir(today_backup_dir) if f.endswith(".db")]
+    last_backup_time = max([os.path.getmtime(f) for f in existing_backups], default=0)
+
+    # Get database last modified time
+    db_mod_time = os.path.getmtime(DATABASE_NAME)
+
+    # Only backup if database has changed
+    if db_mod_time > last_backup_time:
+        timestamp = datetime.now().strftime("%H%M%S")
+        backup_file = os.path.join(today_backup_dir, f"backup_{timestamp}.db")
         shutil.copy2(DATABASE_NAME, backup_file)
+    #     print("Backup created:", backup_file)
+    # else:
+    #     print("No new changes. Backup not needed.")
 
+        
 if __name__ == "__main__":
     # Initialize database
     initialize_database()
