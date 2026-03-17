@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, messagebox, filedialog
-from create_database import get_connection
-import re, os, uuid
+from create_database import get_connection, backup_database
+import re, os, uuid, threading
 from PIL import Image, ImageTk
 from datetime import datetime
 import cv2  # OpenCV for camera
@@ -287,7 +287,7 @@ def add_tenant_screen():
                  bg="#1644A1", fg="white", font=("Segoe UI", 12, "bold"),
                  width=15, padx=5, pady=5).pack(side="left", padx=5)
         
-        tk.Button(btn_frame, text="❌ Cancel", command=close_camera,
+        tk.Button(btn_frame, text="Cancel", command=close_camera,
                  bg="#dc3545", fg="white", font=("Segoe UI", 12, "bold"),
                  width=15, padx=5, pady=5).pack(side="left", padx=5)
         
@@ -314,12 +314,12 @@ def add_tenant_screen():
 
     # Upload button
     tk.Button(photo_buttons_frame, text="📁 Upload Photo", 
-              command=upload_photo, bg="#1644A1", fg="white",
+              command=upload_photo, bg="#31726C", fg="white",
               font=("Segoe UI", 10), width=18).pack(pady=3)
 
     # Take Photo button
     tk.Button(photo_buttons_frame, text="📷 Take Photo", 
-              command=take_photo, bg="#FC8F54", fg="white",
+              command=take_photo, bg="#1A1919", fg="white",
               font=("Segoe UI", 10), width=18).pack(pady=3)
 
     # Remove Photo button
@@ -552,6 +552,7 @@ def add_tenant_screen():
 
             conn.commit()
             conn.close()
+            threading.Thread(target=backup_database).start()
             
             clear_form()
             messagebox.showinfo("Success", "Tenant added successfully!")
@@ -613,13 +614,13 @@ def add_tenant_screen():
     button_frame.grid(row=7, column=0, columnspan=2, pady=20)
 
     # buttons
-    tk.Button(button_frame, text="💾 Save Tenant", bg="#1644A1", fg="white",
+    tk.Button(button_frame, text="💾 Save Tenant", bg="#31726C", fg="white",
             font=("Segoe UI", 12, "bold"), width=13, command=save_tenant).pack(side=tk.LEFT, padx=5)
 
-    tk.Button(button_frame, text="🧹 Clear Form", bg="#FC8F54", fg="white",
+    tk.Button(button_frame, text="🧹 Clear Form", bg="#FB7E3B", fg="white",
             font=("Segoe UI", 12, "bold"), width=13, command=clear_form).pack(side=tk.LEFT, padx=5)
 
-    tk.Button(button_frame, text="❌ Cancel", bg="#83868D", fg="white",
+    tk.Button(button_frame, text="❌ Cancel", bg="#1A1919", fg="white",
             font=("Segoe UI", 12, "bold"), width=13, command=window.destroy).pack(side=tk.LEFT, padx=5)
         
 

@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from create_database import get_connection
+from create_database import get_connection, backup_database
 from datetime import datetime
+import threading
 
 def open_building_collection():
     window = tk.Toplevel()
@@ -182,6 +183,8 @@ def open_building_collection():
         """, (building, collector, date, new_amount, remaining_amount, invest_to))
         conn.commit()
         conn.close()
+        threading.Thread(target=backup_database).start()
+
 
         messagebox.showinfo("Success", f"New collection added! Remaining: {remaining_amount}")
 
@@ -226,6 +229,8 @@ def open_building_collection():
             conn.commit()
             conn.close()
             load_collections()
+            threading.Thread(target=backup_database).start()
+
             messagebox.showinfo("Deleted", "Collection deleted successfully.")
 
     def on_treeview_select(event):
@@ -247,19 +252,19 @@ def open_building_collection():
     btn_frame.pack(pady=5)
 
     save_btn = tk.Button(btn_frame, text="Add Collection", command=save_collection,
-                         bg="#1e3a8a", fg="white", font=("Segoe UI", 11, "bold"), width=25)
+                         bg="#31726C", fg="white", font=("Segoe UI", 11, "bold"), width=18)
     save_btn.grid(row=0, column=0, padx=5)
 
-    delete_btn = tk.Button(btn_frame, text="Delete Selected", command=delete_collection,
-                           bg="#dc2626", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+    delete_btn = tk.Button(btn_frame, text="Delete", command=delete_collection,
+                           bg="#ec2929", fg="white", font=("Segoe UI", 11, "bold"), width=15)
     delete_btn.grid(row=0, column=1, padx=5)
 
     refresh_btn = tk.Button(btn_frame, text="Refresh", command=refresh_collections,
-                            bg="#035C40", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+                            bg="#1e3a8a", fg="white", font=("Segoe UI", 11, "bold"), width=15)
     refresh_btn.grid(row=0, column=2, padx=5)
 
     clear_btn = tk.Button(btn_frame, text="Clear Form", command=clear_form,
-                        bg="#171003", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+                        bg="#1A1919", fg="white", font=("Segoe UI", 11, "bold"), width=15)
     clear_btn.grid(row=0, column=3, padx=5)
 
     # ================= INITIAL LOAD =================

@@ -138,11 +138,11 @@ def open_dashboard():
     icon_frame.pack(side="left", padx=10)
 
     # Power icon
-    tk.Label(icon_frame, text="⚡", font=("Segoe UI", 20, "bold"), 
+    tk.Label(icon_frame, text="👨‍💻", font=("Segoe UI", 20, "bold"), 
             bg="#f0f2f5", fg="#f39c12").pack(side="left")
 
     # Company name
-    tk.Label(icon_frame, text=" Powered by .ARS ", font=("Segoe UI", 18, "bold"), 
+    tk.Label(icon_frame, text=" Developed by .ARS ", font=("Segoe UI", 18, "bold"), 
             bg="#f0f2f5", fg="#1e3a8a").pack(side="left")
 
     # Separator
@@ -240,30 +240,30 @@ def open_dashboard():
     tk.Label(footer_content, text="|", font=("Segoe UI", 12, "bold"),
              bg="#f0f2f5", fg="#95a5a6").pack(side="left", padx=8)
 
-    # Database Location with Icon
-    db_location = DATABASE_NAME
-    drive_letter = os.path.splitdrive(db_location)[0]
+    # # Database Location with Icon
+    # db_location = DATABASE_NAME
+    # drive_letter = os.path.splitdrive(db_location)[0]
 
-    # Choose icon based on drive
-    if drive_letter.upper() == 'C:':
-        drive_icon = "💻"  # System drive
-    else:
-        drive_icon = "💾"  # Data drive
+    # # Choose icon based on drive
+    # if drive_letter.upper() == 'C:':
+    #     drive_icon = "💻"  # System drive
+    # else:
+    #     drive_icon = "💾"  # Data drive
 
-    tk.Label(footer_content, text=drive_icon, font=("Segoe UI", 10),
-             bg="#f0f2f5", fg="#f39c12").pack(side="left", padx=(0, 2))
+    # tk.Label(footer_content, text=drive_icon, font=("Segoe UI", 10),
+    #          bg="#f0f2f5", fg="#032850").pack(side="left", padx=(0, 2))
     
-    # Show only drive and folder name
-    db_short = os.path.dirname(db_location)
-    if len(db_short) > 40:
-        db_short = "..." + db_short[-40:]
+    # # Show only drive and folder name
+    # db_short = os.path.dirname(db_location)
+    # if len(db_short) > 40:
+    #     db_short = "..." + db_short[-40:]
     
-    tk.Label(footer_content, text=f"Data: {db_short}", 
-             font=("Segoe UI", 8), bg="#f0f2f5", fg="#666666").pack(side="left")
+    # tk.Label(footer_content, text=f"Data: {db_short}", 
+    #          font=("Segoe UI", 8), bg="#f0f2f5", fg="#666666").pack(side="left")
 
-    # Separator
-    tk.Label(footer_content, text="|", font=("Segoe UI", 12, "bold"),
-             bg="#f0f2f5", fg="#95a5a6").pack(side="left", padx=8)
+    # # Separator
+    # tk.Label(footer_content, text="|", font=("Segoe UI", 12, "bold"),
+    #          bg="#f0f2f5", fg="#95a5a6").pack(side="left", padx=8)
 
     # Contact
     tk.Label(footer_content, text="📞", font=("Segoe UI", 10),

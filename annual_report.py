@@ -108,52 +108,42 @@ def open_annual_report(parent):
 
 # ==================== GENERATE ANNUAL REPORT ====================
 def generate_annual_report(tree, year, building):
+
     for row in tree.get_children():
         tree.delete(row)
 
-    # ===== Check future month=====
     current_date = datetime.now()
+
     if int(year) > current_date.year:
-        messagebox.showwarning("Warning", 
+        messagebox.showwarning("Warning",
             f"Cannot show future year: {year}\n\nOnly current and past years are available.")
         return
-    
-    if int(year) < current_year:
-        months_to_show = all_months[start_index:]  # Past year
-    elif int(year) == current_year:
-        months_to_show = all_months[start_index:current_month_num]
-    
+
     conn = get_connection()
     c = conn.cursor()
-    
+
     # ===== STEP 1: Months list =====
-    all_months = ["January", "February", "March", "April", "May", "June",
-                  "July", "August", "September", "October", "November", "December"]
-    
-    # ===== STEP 2: Find 1st payment Month =====
+    all_months = ["January","February","March","April","May","June",
+                  "July","August","September","October","November","December"]
+
+    # ===== STEP 2: Find first payment month =====
     c.execute("""
-        SELECT MIN(month_year) FROM payments 
+        SELECT MIN(month_year) FROM payments
         WHERE month_year LIKE ?
     """, (f"%{year}",))
-    
+
     first_payment = c.fetchone()[0]
-    
+
     if first_payment:
-        # 1st payment month
         first_month = first_payment.split('-')[0]
         start_index = all_months.index(first_month)
-        print(f"✅ First payment was in: {first_month} (index {start_index})")
     else:
-        # If payment not exists
-        current_month_num = datetime.now().month
-        start_index = current_month_num - 1
-        print(f"No payments found, starting from current month: {all_months[start_index]}")
-    
+        start_index = 0
+
     # ===== STEP 3: Current date =====
-    current_date = datetime.now()
     current_month_num = current_date.month
     current_year = current_date.year
-    
+
     # ===== STEP 4: Decide months to show =====
     months_to_show = []
     
@@ -171,7 +161,7 @@ def generate_annual_report(tree, year, building):
         conn.close()
         return
     
-    print(f" Showing months: {months_to_show}")
+    # print(f" Showing months: {months_to_show}")
     
     if not months_to_show:
         messagebox.showinfo("Info", "No months to display based on payment history.")

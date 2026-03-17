@@ -46,9 +46,9 @@ class LoginSystem:
         self.current_frame.pack(expand=True, fill="both", padx=30, pady=20)
         
         # Welcome heading
-        tk.Label(self.current_frame, text="Login to Your Account", 
-                font=("Bookman Old Style", 16, "bold italic"), bg="#ffffff", 
-                fg="#000000").pack(pady=(0, 20))
+        # tk.Label(self.current_frame, text="Login to Your Account", 
+        #         font=("Bookman Old Style", 16, "bold italic"), bg="#ffffff", 
+        #         fg="#000000").pack(pady=(0, 20))
         
         # Form frame
         form_frame = tk.Frame(self.current_frame, bg="#ffffff")

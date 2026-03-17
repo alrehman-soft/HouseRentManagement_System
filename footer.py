@@ -5,7 +5,7 @@ from datetime import datetime
 def create_footer(parent_frame):
     
     # Main footer frame
-    footer_frame = tk.Frame(parent_frame,bg="#1e3a8a",height=40,relief="solid",bd=0)
+    footer_frame = tk.Frame(parent_frame,bg="#1e3a8a",height=40)
     footer_frame.pack(side="bottom", fill="x", padx=20, pady=(5, 10))
     footer_frame.pack_propagate(False)
 
@@ -29,10 +29,10 @@ def create_footer(parent_frame):
              bg="#1e3a8a",fg="#95a5a6").pack(side="left", padx=8)
 
     # Powered by
-    tk.Label(footer_content,text="⚡",font=("Segoe UI", 12),bg="#1e3a8a", 
-        fg="#f39c12").pack(side="left", padx=(0, 2))
+    tk.Label(footer_content,text="👨‍💻",font=("Segoe UI", 12),bg="#1e3a8a", 
+        fg="#fcfcfc").pack(side="left", padx=(0, 2))
     
-    tk.Label(footer_content,text="Powered by",font=("Segoe UI", 12),
+    tk.Label(footer_content,text="Developed by",font=("Segoe UI", 12),
              bg="#1e3a8a",fg="white").pack(side="left")
     
     tk.Label(footer_content, text=".ARS", font=("Segoe UI", 12, "bold"),

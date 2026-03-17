@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from create_database import get_connection
+from create_database import get_connection, backup_database
 from datetime import datetime
 from building_collection import open_building_collection
-
+import threading
 
 editing_payment_id = None
 def open_payments():
@@ -29,7 +29,7 @@ def open_payments():
 
     # --------------- Building Collection Button ---------------
     tk.Button(top_frame, text="Building Collection", command=open_building_collection,
-            bg="#065021", fg="white", font=("Segoe UI", 10, "bold"), width=20, height=2, cursor="hand2").pack(side="left")
+            bg="#07461E", fg="white", font=("Segoe UI", 11, "bold"), width=20, height=2, cursor="hand2", bd=2).pack(side="left")
     
     # ========== MAIN CONTENT WITH SCROLLBAR ==========
     # Create a container for canvas and scrollbar
@@ -694,7 +694,8 @@ def open_payments():
 
             conn.commit()
             conn.close()
-            
+            threading.Thread(target=backup_database).start()
+
             messagebox.showinfo("Success", "Payment recorded successfully!")
             clear_form()
             load_paid_payments()
@@ -832,6 +833,8 @@ def open_payments():
                 # Delete payment
                 c.execute("DELETE FROM payments WHERE id=?", (payment_id,))
                 conn.commit()
+                threading.Thread(target=backup_database).start()
+
                 messagebox.showinfo("Success", "Payment deleted successfully and amount restored to building collection!")
                 
                 # Refresh both tables

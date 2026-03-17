@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from create_database import get_connection
+from create_database import get_connection, backup_database
 from datetime import datetime
+import threading
 
 
 def open_rent_collector():
@@ -423,6 +424,7 @@ def open_rent_collector():
 
             conn.commit()
             conn.close()
+            threading.Thread(target=backup_database).start()
 
             messagebox.showinfo("Success", "Rent Collector updated successfully!")
             clear_form()
@@ -453,6 +455,7 @@ def open_rent_collector():
                 
                 conn.commit()
                 conn.close()
+                threading.Thread(target=backup_database).start()
                 
                 messagebox.showinfo("Success", "Rent Collector deleted successfully!")
                 clear_form()
@@ -526,6 +529,8 @@ def open_rent_collector():
 
             conn.commit()
             conn.close()
+            threading.Thread(target=backup_database).start()
+
 
             messagebox.showinfo("Success", "Rent Collector added successfully!")
             clear_form()
@@ -572,32 +577,32 @@ def open_rent_collector():
     # Edit Button
     tk.Button(action_frame, text="✏️ Edit Collector", command=edit_collector,
             bg="#121481", fg="white", font=("Segoe UI", 11, "bold"),
-            width=15, height=2, relief="raised", bd=2, cursor="hand2").grid(
+            width=15, height=1, relief="raised", bd=2, cursor="hand2").grid(
             row=0, column=0, padx=5, pady=5, sticky="ew")
 
     # Delete Button
     tk.Button(action_frame, text="🗑️ Delete Collector", command=delete_collector,
             bg="#DC3C22", fg="white", font=("Segoe UI", 11, "bold"),
-            width=15, height=2, relief="raised", bd=2, cursor="hand2").grid(
+            width=15, height=1, relief="raised", bd=2, cursor="hand2").grid(
             row=0, column=1, padx=5, pady=5, sticky="ew")
 
     # Refresh Button
     tk.Button(action_frame, text="🔄 Refresh List", command=lambda: load_collectors(),
-            bg="#090b0a", fg="white", font=("Segoe UI", 11, "bold"),
-            width=15, height=2, relief="raised", bd=2, cursor="hand2").grid(
+            bg="#1A1919", fg="white", font=("Segoe UI", 11, "bold"),
+            width=15, height=1, relief="raised", bd=2, cursor="hand2").grid(
             row=0, column=2, padx=5, pady=5, sticky="ew")
 
     # Buttons - LEFT FRAME
     tk.Button(button_frame, text="💾 Save Collector", command=save_collector,
-              bg="#069767", fg="white", font=("Segoe UI", 11, "bold"),
+              bg="#31726C", fg="white", font=("Segoe UI", 11, "bold"),
               width=14, height=2, relief="raised", bd=2).pack(side="left", padx=5)
 
     tk.Button(button_frame, text="❌ Close", command=window.destroy,
-              bg="#e24040", fg="white", font=("Segoe UI", 11, "bold"),
+              bg="#1A1919", fg="white", font=("Segoe UI", 11, "bold"),
               width=14, height=2, relief="raised", bd=2).pack(side="left", padx=5)
     
     tk.Button(button_frame, text="🧹 Clear Form", command=clear_form,
-              bg="#1BABE9", fg="white", font=("Segoe UI", 11, "bold"),
+              bg="#e24040", fg="white", font=("Segoe UI", 11, "bold"),
               width=14, height=2, relief="raised", bd=2).pack(side="left", padx=5)
 
     # ========== INITIAL LOAD ==========
