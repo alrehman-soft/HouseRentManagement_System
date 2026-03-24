@@ -40,43 +40,40 @@ def open_dashboard():
              font=("Segoe UI", 20, "bold"),
              bg="#1e3a8a", fg="white", justify="center").pack(pady=(30, 20))
 
-    # Sidebar Buttons
+    # ===== SIDEBAR BUTTONS =====
     buttons_data = [
-        ("📊 Dashboard", None),
+        ("📊 Dashboard", lambda: messagebox.showinfo("Info", "Dashboard clicked!")),
         ("👤 Add Tenant", add_tenant_screen),
         ("📋 Tenant List", open_tenant_list),
         ("💰 Payments", open_payments),
         ("💵 Rent Collector", open_rent_collector),
         ("📈 Reports", open_reports_dashboard),
+        ("🗄️ Database Info", lambda: show_database_info(dashboard)),
     ]
 
     for text, command in buttons_data:
-        btn_frame = tk.Frame(sidebar, bg="#1e3a8a")
-        btn_frame.pack(fill="x", padx=40, pady=3)
+        # Frame for border & hover effect
+        btn_frame = tk.Frame(sidebar, bg="#1e3a8a", relief="raised", bd=1)
+        btn_frame.pack(fill="x", padx=40, pady=5)
 
-        if command is None:
-            btn = tk.Label(btn_frame, text=text, font=("Segoe UI", 12, "bold"),
-                          bg="#3a7be4", fg="white", padx=40, pady=8, anchor="w", cursor="hand2")
-        else:
-            btn = tk.Label(btn_frame, text=text, font=("Segoe UI", 12),
-                          bg="#1e3a8a", fg="white", padx=40, pady=8, anchor="w", cursor="hand2")
-            btn.bind("<Enter>", lambda e, b=btn_frame: b.config(bg="#2a4a9a"))
-            btn.bind("<Leave>", lambda e, b=btn_frame: b.config(bg="#1e3a8a"))
-            btn.bind("<Button-1>", lambda e, cmd=command: cmd())
+        btn = tk.Label(btn_frame,text=text,font=("Segoe UI", 12, "bold"),bg="#1e3a8a",
+            fg="white",width=20,height=2,anchor="w",padx=10,cursor="hand2")
+        btn.pack(fill="both", expand=True)
 
-        btn.pack(fill="x")
+        # Hover effect
+        def on_enter(e, frame=btn_frame, label=btn):
+            frame.config(bg="#1a1919")
+            label.config(bg="#1a1919")
 
-    
-    # ===== DATABASE INFO BUTTON =====
-    db_info_frame = tk.Frame(sidebar, bg="#1e3a8a")
-    db_info_frame.pack(fill="x", padx=40, pady=3)
+        def on_leave(e, frame=btn_frame, label=btn):
+            frame.config(bg="#1e3a8a")
+            label.config(bg="#1e3a8a")
 
-    db_info_btn = tk.Label(db_info_frame, text="🗄️Database Info", font=("Segoe UI", 11),
-                          bg="#1e3a8a", fg="white", padx=40, pady=8, anchor="w", cursor="hand2")
-    db_info_btn.pack(fill="x")
-    db_info_btn.bind("<Enter>", lambda e: db_info_btn.config(bg="#2a4a9a"))
-    db_info_btn.bind("<Leave>", lambda e: db_info_btn.config(bg="#1e3a8a"))
-    db_info_btn.bind("<Button-1>", lambda e: show_database_info(dashboard))
+        btn.bind("<Enter>", on_enter)
+        btn.bind("<Leave>", on_leave)
+
+        # Click event
+        btn.bind("<Button-1>", lambda e, cmd=command: cmd())
 
     # Separator
     tk.Frame(sidebar, bg="white", height=2).pack(fill="x", padx=40, pady=15)
@@ -544,16 +541,16 @@ def show_database_info(parent):
     
     info_window = tk.Toplevel(parent)
     info_window.title("Database Information")
-    info_window.geometry("550x450")
+    info_window.geometry("550x500")
     info_window.config(bg="#ffffff")
     info_window.transient(parent)
     info_window.grab_set()
     
     # Center window
     info_window.update_idletasks()
-    x = (info_window.winfo_screenwidth() // 2) - (550 // 2)
-    y = (info_window.winfo_screenheight() // 2) - (450 // 2)
-    info_window.geometry(f'550x450+{x}+{y}')
+    x = (info_window.winfo_screenwidth() // 2) - (650 // 2)
+    y = (info_window.winfo_screenheight() // 2) - (500 // 2)
+    info_window.geometry(f'550x500+{x}+{y}')
     
     # Title
     tk.Label(info_window, text="📁 Database Information", 
@@ -616,16 +613,15 @@ def show_database_info(parent):
     # Separator
     tk.Frame(main_frame, bg="#cccccc", height=1).pack(fill="x", padx=20, pady=15)
     
-    # Available drives
+    # Drives
     tk.Label(main_frame, text="🖥️ Available Drives:", font=("Segoe UI", 11, "bold"),
-             bg="#f8fafc", anchor="w").pack(anchor="w", padx=20, pady=5)
-    
+            bg="#f8fafc", anchor="w").pack(anchor="w", padx=20, pady=5)
+
     drives = get_available_drives()
     drives_frame = tk.Frame(main_frame, bg="#f8fafc")
     drives_frame.pack(fill="x", padx=20, pady=5)
-    
-    for i, drive in enumerate(drives):
-        # Highlight current drive
+
+    for drive in drives:
         if drive == db_drive:
             fg_color = "#1e3a8a"
             font_bold = ("Segoe UI", 10, "bold")
@@ -633,8 +629,8 @@ def show_database_info(parent):
             fg_color = "#666666"
             font_bold = ("Segoe UI", 10)
         
-        tk.Label(drives_frame, text=drive, font=font_bold,
-                 bg="#f8fafc", fg=fg_color).grid(row=0, column=i, padx=5)
+        tk.Label(drives_frame,text=drive,font=font_bold,bg="#f8fafc",
+                 fg=fg_color,padx=5,pady=3).pack(side="left", padx=5)
     
     # Buttons
     btn_frame = tk.Frame(info_window, bg="#ffffff")

@@ -15,7 +15,7 @@ def start_app():
 
     root = tk.Tk()
     root.title("Abu Huraira Enterprises - Developed by: .ARS")
-    root.geometry("1050x650")
+    root.geometry("1100x650")
     root.config(bg="#f8fafc")
     root.resizable(True, True)
 
