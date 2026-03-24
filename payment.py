@@ -29,8 +29,23 @@ def open_payments():
     top_frame.pack(fill="x", pady=10, padx=10)
 
     # --------------- Building Collection Button ---------------
-    tk.Button(top_frame, text="Building Collection", command=open_building_collection,
-            bg="#07461E", fg="white", font=("Segoe UI", 11, "bold"), width=20, height=2, cursor="hand2", bd=2).pack(side="left")
+    btn_canvas = tk.Canvas(top_frame, width=220, height=50, highlightthickness=0, cursor="hand2")
+    btn_canvas.pack(side="left", padx=5)
+
+    # Horizontal gradient
+    for i in range(220):
+        r = int(210 + (250 - 210) * i / 220)    # Red: 210 → 250
+        g = int(140 + (200 - 140) * i / 220)    # Green: 140 → 200
+        b = int(60 + (100 - 60) * i / 220)      # Blue: 60 → 100
+        color = f'#{r:02x}{g:02x}{b:02x}'
+        btn_canvas.create_line(i, 0, i, 50, fill=color)
+
+    # Text on button
+    btn_canvas.create_text(110, 25, text="Building Collection",
+                        font=("Segoe UI", 12, "bold italic"), fill="white")
+
+    # Bind click to open_building_collection
+    btn_canvas.bind("<Button-1>", lambda e: open_building_collection())
     
     # ========== MAIN CONTENT WITH SCROLLBAR ==========
     # Create a container for canvas and scrollbar

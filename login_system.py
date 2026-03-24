@@ -226,7 +226,7 @@ class LoginSystem:
                 relief="solid", bd=1).grid(row=2, column=1, pady=8, padx=10, ipady=5)
         
         # Phone number field
-        tk.Label(form_frame, text="Phone Number", font=("Segoe UI", 10),
+        tk.Label(form_frame, text="Phone Number", font=("Segoe UI", 10, "bold"),
                 bg="#ffffff", anchor="w").grid(row=3, column=0, sticky="w", pady=8)
         tk.Entry(form_frame, textvariable=self.reg_phone_var,
                 font=("Segoe UI", 11), bg="#f8fafc", width=25,

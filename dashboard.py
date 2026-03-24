@@ -23,8 +23,8 @@ def open_dashboard():
     dashboard.title("Abu Huraira Enterprises - Created by: .ARS")
     dashboard.geometry("1370x800")
     dashboard.config(bg="#f0f2f5")
-    dashboard.resizable(True, True)
     dashboard.state('zoomed')
+    dashboard.resizable(True, True)
 
     # Configure grid weights
     dashboard.grid_columnconfigure(1, weight=1)
@@ -107,7 +107,12 @@ def open_dashboard():
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
 
-    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+    def resize_frame(event):
+        canvas.itemconfig(canvas_window, width=event.width)
+
+    canvas.bind("<Configure>", resize_frame)
     canvas.configure(yscrollcommand=scrollbar.set)
 
     canvas.pack(side="left", fill="both", expand=True)

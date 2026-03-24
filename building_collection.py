@@ -20,11 +20,16 @@ def open_building_collection():
     main_canvas.configure(yscrollcommand=scrollbar.set)
 
     scroll_frame = tk.Frame(main_canvas, bg="#f8fafc")
-    main_canvas.create_window((0,0), window=scroll_frame, anchor="nw")
+    canvas_window = main_canvas.create_window((0,0), window=scroll_frame, anchor="nw")
 
     def on_frame_configure(event):
         main_canvas.configure(scrollregion=main_canvas.bbox("all"))
     scroll_frame.bind("<Configure>", on_frame_configure)
+
+    def resize_frame(event):
+        main_canvas.itemconfig(canvas_window, width=event.width)
+
+    main_canvas.bind("<Configure>", resize_frame)
 
     # ================= HEADER =================
     header = tk.Frame(scroll_frame, bg="#1e3a8a", height=80)
@@ -37,6 +42,7 @@ def open_building_collection():
     # ================= FORM =================
     form = tk.Frame(scroll_frame, bg="#f8fafc")
     form.pack(pady=10)
+    form.grid_columnconfigure(1, weight=1)
 
     # Variables
     building_var = tk.StringVar()
@@ -234,38 +240,38 @@ def open_building_collection():
 
             messagebox.showinfo("Deleted", "Collection deleted successfully.")
 
-    def on_treeview_select(event):
-        selected = collection_tree.focus()
-        if not selected:
-            return
-        values = collection_tree.item(selected, 'values')
-        selected_id.set(int(values[0]))
-        building_var.set(values[1])
-        collector_var.set(values[2])
-        date_var.set(values[3])
-        total_var.set(values[4])
-        invest_var.set(values[6])
+    # def on_treeview_select(event):
+    #     selected = collection_tree.focus()
+    #     if not selected:
+    #         return
+    #     values = collection_tree.item(selected, 'values')
+    #     selected_id.set(int(values[0]))
+    #     building_var.set(values[1])
+    #     collector_var.set(values[2])
+    #     date_var.set(values[3])
+    #     total_var.set(values[4])
+    #     invest_var.set(values[6])
 
-    collection_tree.bind("<Double-1>", on_treeview_select)
+    # collection_tree.bind("<Double-1>", on_treeview_select)
 
     # ================= BUTTONS =================
     btn_frame = tk.Frame(scroll_frame, bg="#f8fafc")
     btn_frame.pack(pady=5)
 
-    save_btn = tk.Button(btn_frame, text="Add Collection", command=save_collection,
-                         bg="#31726C", fg="white", font=("Segoe UI", 11, "bold"), width=18)
+    save_btn = tk.Button(btn_frame, text="Save", command=save_collection,
+                         bg="#31726C", fg="white", font=("Segoe UI", 11, "bold italic"), width=15)
     save_btn.grid(row=0, column=0, padx=5)
 
     delete_btn = tk.Button(btn_frame, text="Delete", command=delete_collection,
-                           bg="#ec2929", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+                           bg="#ec2929", fg="white", font=("Segoe UI", 11, "bold italic"), width=15)
     delete_btn.grid(row=0, column=1, padx=5)
 
     refresh_btn = tk.Button(btn_frame, text="Refresh", command=refresh_collections,
-                            bg="#1e3a8a", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+                            bg="#1e3a8a", fg="white", font=("Segoe UI", 11, "bold italic"), width=15)
     refresh_btn.grid(row=0, column=2, padx=5)
 
     clear_btn = tk.Button(btn_frame, text="Clear Form", command=clear_form,
-                        bg="#1A1919", fg="white", font=("Segoe UI", 11, "bold"), width=15)
+                        bg="#1A1919", fg="white", font=("Segoe UI", 11, "bold italic"), width=15)
     clear_btn.grid(row=0, column=3, padx=5)
 
     # ================= INITIAL LOAD =================
