@@ -23,6 +23,7 @@ def open_dashboard():
     dashboard.title("Abu Huraira Enterprises - Created by: .ARS")
     dashboard.geometry("1370x800")
     dashboard.config(bg="#f0f2f5")
+    dashboard.resizable(True, True)
     dashboard.state('zoomed')
 
     # Configure grid weights
@@ -240,30 +241,6 @@ def open_dashboard():
     tk.Label(footer_content, text="|", font=("Segoe UI", 12, "bold"),
              bg="#f0f2f5", fg="#95a5a6").pack(side="left", padx=8)
 
-    # # Database Location with Icon
-    # db_location = DATABASE_NAME
-    # drive_letter = os.path.splitdrive(db_location)[0]
-
-    # # Choose icon based on drive
-    # if drive_letter.upper() == 'C:':
-    #     drive_icon = "💻"  # System drive
-    # else:
-    #     drive_icon = "💾"  # Data drive
-
-    # tk.Label(footer_content, text=drive_icon, font=("Segoe UI", 10),
-    #          bg="#f0f2f5", fg="#032850").pack(side="left", padx=(0, 2))
-    
-    # # Show only drive and folder name
-    # db_short = os.path.dirname(db_location)
-    # if len(db_short) > 40:
-    #     db_short = "..." + db_short[-40:]
-    
-    # tk.Label(footer_content, text=f"Data: {db_short}", 
-    #          font=("Segoe UI", 8), bg="#f0f2f5", fg="#666666").pack(side="left")
-
-    # # Separator
-    # tk.Label(footer_content, text="|", font=("Segoe UI", 12, "bold"),
-    #          bg="#f0f2f5", fg="#95a5a6").pack(side="left", padx=8)
 
     # Contact
     tk.Label(footer_content, text="📞", font=("Segoe UI", 10),

@@ -8,7 +8,7 @@ import print_utils
 
 # ==================== OPEN ANNUAL REPORT ====================
 def open_annual_report(parent):
-    """Annual Report Tab - Building Wise Annual Summary with styled Treeview"""
+    """Annual Report Tab"""
     
     # Clear parent frame
     for widget in parent.winfo_children():

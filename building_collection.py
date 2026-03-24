@@ -9,6 +9,7 @@ def open_building_collection():
     window.title("Building Collection Control")
     window.geometry("950x650")
     window.config(bg="#f8fafc")
+    window.resizable(True, True)
 
     # ================= SCROLLABLE CANVAS =================
     main_canvas = tk.Canvas(window, bg="#f8fafc")

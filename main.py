@@ -17,6 +17,7 @@ def start_app():
     root.title("Abu Huraira Enterprises - Developed by: .ARS")
     root.geometry("1050x650")
     root.config(bg="#f8fafc")
+    root.resizable(True, True)
 
     # ===== Scrollable Content Setup =====
     main_frame = tk.Frame(root, bg="#f8fafc")
@@ -120,8 +121,8 @@ def start_app():
         placeholder.pack(pady=20, padx=20)
 
     # --- Login Section ---
-    tk.Label(right_frame, text="User Login", font=("Segoe UI", 16, "bold"),
-            bg="white", fg="#1e3a8a").pack(pady=10)
+    # tk.Label(right_frame, text="User Login", font=("Segoe UI", 16, "bold"),
+    #         bg="white", fg="#1e3a8a").pack(pady=10)
 
     login_system = LoginSystem(right_frame, lambda: open_dashboard_with_close(root))
     

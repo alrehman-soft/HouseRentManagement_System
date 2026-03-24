@@ -14,6 +14,7 @@ def open_payments():
     window.title("Abu Huraira Enterprises - Created by .ARS")
     window.geometry("1400x930")
     window.config(bg="#f8fafc")
+    window.resizable(True, True)
 
     # Header
     header_frame = tk.Frame(window, bg="#1e3a8a", height=120)

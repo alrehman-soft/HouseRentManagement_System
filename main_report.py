@@ -11,6 +11,7 @@ def open_reports_dashboard():
     window.title("Reports Dashboard")
     window.geometry("1000x700")
     window.config(bg="#f8fafc")
+    window.resizable(True, True)
 
     # Main container
     main_frame = tk.Frame(window, bg="#f8fafc")

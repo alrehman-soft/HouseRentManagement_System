@@ -15,6 +15,7 @@ def open_tenant_list():
     window.title("Abu Huraira Enterprises - Created by .ARS")
     window.geometry("1200x700")
     window.config(bg="#f8fafc")
+    window.resizable(True, True)
 
     # Main container
     main_frame = tk.Frame(window, bg="#f8fafc")
